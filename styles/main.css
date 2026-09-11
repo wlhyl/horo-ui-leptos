@@ -1,0 +1,82 @@
+/* ==========================================================================
+ * 全局样式层（Global layer）
+ * --------------------------------------------------------------------------
+ * 这里只保留「天然是全局的」内容：设计变量、选择器重置、以及元素级基础样式。
+ *
+ * 组件级样式一律下沉到 src/**\/*.module.css（CSS Modules），由 stylance 在编译期
+ * 把类名加上文件哈希（如 `card-a1b2c3d`），并通过 import_crate_style! 生成同名
+ * 常量供 Rust 代码引用，从而做到组件之间的样式互不影响。
+ *
+ * 加载顺序：本文件在前，styles/stylance.css（作用域样式）在后，
+ * 因此组件内同名属性可以覆盖这里的基础样式。
+ * ========================================================================== */
+
+:root {
+  color-scheme: light;
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --text-0: #1f2430;
+  --text-1: #5b6472;
+  --gold: #b8860b;
+  --gold-2: #d9a441;
+  --indigo: #4f5bd5;
+  --violet: #6a5acd;
+  --green: #1a9e57;
+  --red: #d63b3b;
+  --amber: #c47f12;
+  --line: rgba(20, 30, 50, 0.12);
+  --line-strong: rgba(20, 30, 50, 0.2);
+  --radius: 16px;
+  --shadow: 0 8px 24px rgba(20, 30, 50, 0.08);
+  --font: "PingFang SC", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 关键：html 与 body 同色，缩放时超出布局的边缘不再“白→黑”闪一下 */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--text-0);
+  /* 禁用横向滚动，避免缩放时产生横向滚动条与重排 */
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 表单控件的元素级基础样式（所有组件共享的设计系统底座） */
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 11px 12px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-0);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(79, 91, 213, 0.18);
+}

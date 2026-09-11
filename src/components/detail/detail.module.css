@@ -1,0 +1,375 @@
+/*! 详情页样式：行星力量 / 接纳 / 互融 / 气质 / 映点 / 反映点 / 视力点 / 恒星。 */
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 10px;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::before {
+  content: "";
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--gold), var(--indigo));
+}
+
+/* 强制占星符号按文字字形渲染，避免被当成彩色 emoji（红底/放大） */
+.glyph {
+  font-variant-emoji: text;
+}
+
+/* ---------- 通用列表（接纳 / 互融 / 映点 / 反映点） ---------- */
+
+.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.empty-note {
+  color: var(--text-1);
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+/* ---------- 行星力量 ---------- */
+
+.almuten-summary {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-0);
+}
+
+.power-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.power-list > li {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.power-list > li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.score-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin-top: 6px;
+}
+
+.section-label {
+  color: var(--text-1);
+  font-size: 12.5px;
+  margin-right: 2px;
+  white-space: nowrap;
+}
+
+.dignity-tag,
+.accidental-tag,
+.solar-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.dignity-tag {
+  color: var(--gold);
+  background: rgba(184, 134, 11, 0.1);
+  border: 1px solid rgba(184, 134, 11, 0.35);
+}
+
+.accidental-tag {
+  color: var(--indigo);
+  background: rgba(79, 91, 213, 0.08);
+  border: 1px solid rgba(79, 91, 213, 0.3);
+}
+
+.solar-tag {
+  color: #b45309;
+  background: rgba(217, 119, 6, 0.1);
+  border: 1px solid rgba(217, 119, 6, 0.35);
+}
+
+/* 负分标签统一红系 */
+.detriment-tag {
+  color: var(--red);
+  background: rgba(214, 59, 59, 0.08);
+  border: 1px solid rgba(214, 59, 59, 0.3);
+}
+
+/* ---------- 接纳 / 互融 ---------- */
+
+.orb {
+  color: var(--text-1);
+  font-size: 13px;
+  margin: 0 6px 0 2px;
+}
+
+.mutual-arrow {
+  color: var(--text-1);
+  margin: 0 6px;
+}
+
+/* ---------- 气质 ---------- */
+
+.temperament-error {
+  color: var(--red);
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.temperament-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.temperament-table th,
+.temperament-table td {
+  padding: 6px 6px;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+}
+
+.temperament-table th {
+  color: var(--text-1);
+  font-weight: 500;
+  font-size: 12.5px;
+}
+
+.name-cell {
+  font-size: 17px;
+  width: 34px;
+}
+
+.sources-cell {
+  text-align: left;
+  color: var(--text-1);
+}
+
+.quality-cell input {
+  accent-color: var(--gold);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.action-cell {
+  width: 30px;
+}
+
+.remove-btn {
+  border: none;
+  background: none;
+  color: var(--red);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.add-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.add-select {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-0);
+  font-size: 13px;
+}
+
+.add-btn,
+.reset-btn {
+  padding: 4px 14px;
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  background: none;
+  color: var(--gold);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.add-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.add-btn:not(:disabled):hover,
+.reset-btn:hover {
+  background: rgba(184, 134, 11, 0.08);
+}
+
+.reset-btn {
+  margin-top: 4px;
+}
+
+.humor-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+
+.humor-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.humor-label {
+  font-weight: 600;
+  color: var(--text-0);
+  white-space: nowrap;
+}
+
+.humor-bar-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.humor-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.humor-score {
+  color: var(--text-1);
+  white-space: nowrap;
+}
+
+.humor-desc {
+  grid-column: 1 / -1;
+  color: var(--text-1);
+  font-size: 12px;
+  margin-top: -6px;
+}
+
+/* 四体液配色 */
+.humor-sanguine {
+  background: linear-gradient(90deg, #e0603c, #f0a060);
+}
+
+.humor-phlegmatic {
+  background: linear-gradient(90deg, #3c78c8, #6fb0e8);
+}
+
+.humor-choleric {
+  background: linear-gradient(90deg, #c8442c, #e8804c);
+}
+
+.humor-melancholic {
+  background: linear-gradient(90deg, #5a6b52, #8aa078);
+}
+
+/* ---------- 视力点 ---------- */
+
+.vision-line {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.vision-position {
+  font-variant-emoji: text;
+}
+
+.vision-error {
+  color: #ff6b6b;
+}
+
+.formula {
+  display: block;
+  color: var(--text-1);
+  font-size: 12px;
+}
+
+/* ---------- 恒星 ---------- */
+
+/* 单卡承载全部恒星：宽屏下独占整行，内部两列 */
+.star-section {
+  grid-column: 1 / -1;
+}
+
+.star-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.star-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-0);
+  font-variant-emoji: text;
+}
+
+.star-item p {
+  margin: 3px 0;
+  font-size: 13px;
+  color: var(--text-1);
+  font-variant-emoji: text;
+}
+
+/* 星座符号比正文略大，视觉上更醒目 */
+.star-item .star-glyph {
+  font-size: 15px;
+}
+
+.nearby {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+@media (min-width: 760px) {
+  .detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .star-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

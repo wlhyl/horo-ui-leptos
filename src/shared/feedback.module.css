@@ -1,0 +1,20 @@
+/*!
+ * 共享样式模块：反馈类文本（错误 / 提示 / 加载中）。
+ * 多处页面复用，统一在这里定义以避免散落重复的全局类。
+ */
+
+.error {
+  color: var(--red);
+  background: rgba(214, 59, 59, 0.08);
+  border: 1px solid rgba(214, 59, 59, 0.28);
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.loading {
+  text-align: center;
+  color: var(--text-1);
+  padding: 40px 0;
+  font-size: 15px;
+}

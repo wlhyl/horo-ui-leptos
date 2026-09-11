@@ -1,0 +1,23 @@
+/target
+Cargo.lock
+
+# stylance 由 src/**/*.module.css 生成的样式包（构建前自动生成，无需入库）
+/styles/stylance.css 
+
+/dist
+/.playwright-cli
+/.codebuddy
+
+.idea
+.vscode
+
+.DS_Store
+
+CLAUDE.md
+.trae
+.codegraph
+*.bak
+
+# LLVM 覆盖率产物（instrument-coverage 运行时生成）
+*.profraw
+*.profdata

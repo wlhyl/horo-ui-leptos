@@ -1,0 +1,28 @@
+/*! 日期 / 时间 / 时区 / 夏令时输入。 */
+
+/* 时区输入框不需要占满整行 */
+.tz-input {
+  max-width: 120px;
+}
+
+/* 「现在」按钮：一键填充当前日期时间（对应原版 nowDate 的时钟图标） */
+.now-btn {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--gold);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.now-btn:hover {
+  border-color: var(--gold);
+  background: rgba(184, 134, 11, 0.08);
+}
+
+.now-btn:active {
+  background: rgba(184, 134, 11, 0.15);
+}

@@ -1,0 +1,56 @@
+/*! 应用外壳：响应式布局与顶部应用栏。 */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  padding-top: max(14px, env(safe-area-inset-top));
+  /* 去掉 backdrop-filter: blur（缩放时极耗性能），改用实色半透明 */
+  background: rgba(245, 246, 248, 0.9);
+  border-bottom: 1px solid var(--line);
+}
+
+.app-bar .logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--gold-2), var(--indigo) 70%);
+  flex: 0 0 auto;
+}
+
+.app-bar h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.5px;
+  color: var(--text-0);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 16px 28px;
+}
+
+@media (min-width: 760px) {
+  .app-main {
+    padding: 28px 24px 36px;
+  }
+}

@@ -1,0 +1,32 @@
+/*!
+ * 共享样式模块：卡片容器。
+ * 被 input / chart / detail 等多个组件 import，属于「显式共享」，
+ * 其余样式都在各自组件的 module.css 里独立作用域化。
+ */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  animation: rise 0.4s ease both;
+}
+
+.card h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-0);
+}

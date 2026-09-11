@@ -1,0 +1,17 @@
+[serve]
+addresses = ["127.0.0.1"]
+port = 3000
+
+# stylance 每次执行都会重写 styles/stylance.css（内容不变也写），
+# 若让 trunk 监听该文件会形成「重写 -> 重建 -> 重写」的死循环，故显式排除。
+# 改 *.module.css 仍会触发重建，构建时照样会重新读取并打包这个产物。
+[watch]
+ignore = ["styles/stylance.css"]
+
+# 每次构建前把 src/**/*.module.css 转成带哈希作用域类名并打包到 styles/stylance.css
+# 需要本机安装 CLI：cargo install stylance-cli
+# trunk serve 会监听 .module.css 的改动并重跑本钩子，无需另开终端跑 stylance --watch
+[[hooks]]
+stage = "pre_build"
+command = "stylance"
+command_arguments = ["."]

@@ -1,0 +1,58 @@
+//! 入口页：选择进入本命星盘或天象盘。
+use leptos::prelude::*;
+use leptos_router::hooks::use_navigate;
+use leptos_router::NavigateOptions;
+
+use crate::routes::AppRoute;
+
+// 作用域样式：src/home/home.module.css
+stylance::import_crate_style!(style, "src/home/home.module.css");
+
+#[component]
+pub fn Home() -> impl IntoView {
+    // 必须在渲染期取导航器（事件闭包里调用会拿不到 Router 上下文）
+    let nav = use_navigate();
+
+    let go_native = {
+        let nav = nav.clone();
+        move |_| {
+            nav(AppRoute::Native.path(), NavigateOptions::default());
+        }
+    };
+    let go_event = {
+        let nav = nav.clone();
+        move |_| {
+            nav(AppRoute::Event.path(), NavigateOptions::default());
+        }
+    };
+
+    view! {
+        <div class=style::home>
+            <div class=style::home_grid>
+                <button class=style::home_card on:click=go_native>
+                    <div class=style::home_icon>
+                        // 五角星轮廓，同 horo-ui 本命入口的 star-outline 图案
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linejoin="round">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/>
+                        </svg>
+                    </div>
+                    <div class=style::home_name>"本命盘"</div>
+                    <div class=style::home_desc>"出生时间 · 出生地点"</div>
+                </button>
+                <button class=style::home_card on:click=go_event>
+                    <div class=style::home_icon>
+                        // 地球仪轮廓，同 horo-ui 天象盘入口的 globe-outline 图案
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M2 12h20"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                    </div>
+                    <div class=style::home_name>"天象盘"</div>
+                    <div class=style::home_desc>"任意时刻天象"</div>
+                </button>
+            </div>
+        </div>
+    }
+}
