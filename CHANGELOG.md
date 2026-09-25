@@ -14,3 +14,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 登录态管理：JWT 解析与过期校验，token 持久化于 `localStorage['token']`（与原版 horo-ui 互通）
 - 顶栏用户入口：未登录显示「登录」，已登录显示用户名，点击进入用户页
 - 新增 `ADMIN_API_BASE_URL` 构建配置（Docker 内同源由 ingress 转发）
+- 地名搜索经纬度：输入页地理区域新增地名输入与搜索（回车/按钮触发），对接 horo-storage-api 的 `/api/horo-admin/location_search`（`token` header 鉴权，中文地名 URL 编码），结果列表点选后回填地名与经纬度；`GeoInput` 组件目录化，经纬度输入改用 `prop:value` 修复程序化回写不刷新的问题

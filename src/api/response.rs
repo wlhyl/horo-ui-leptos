@@ -15,6 +15,16 @@ pub struct TokenResponse {
     pub token: String,
 }
 
+/// 地名搜索结果（horo-storage-api location_search）。
+#[derive(Clone, Deserialize)]
+pub struct LocationResponse {
+    pub name: String,
+    /// 经度（字符串形式，nominatim 上游如此）
+    pub longitude: String,
+    /// 纬度（字符串形式）
+    pub latitude: String,
+}
+
 #[derive(Clone, Copy, Deserialize)]
 pub struct Planet {
     pub name: PlanetName,

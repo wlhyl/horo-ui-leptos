@@ -1,0 +1,65 @@
+/*! 地名搜索与经纬度输入。 */
+
+/* 地名输入框：与搜索按钮同行，占满剩余宽度 */
+.name-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 「搜索」按钮：与「现在」按钮同级的次级操作，金色描边弱化呈现 */
+.search-btn {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--gold);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.search-btn:hover {
+  border-color: var(--gold);
+  background: rgba(184, 134, 11, 0.08);
+}
+
+.search-btn:active {
+  background: rgba(184, 134, 11, 0.15);
+}
+
+.search-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* 搜索结果列表：地名字段的控件列（第 2 列）下方，与输入框左对齐 */
+.results {
+  grid-column: 2;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+/* 单条结果：仅展示地名，点击回填 */
+.result {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.result + .result {
+  border-top: 1px solid var(--line);
+}
+
+.result:hover {
+  background: rgba(184, 134, 11, 0.08);
+}

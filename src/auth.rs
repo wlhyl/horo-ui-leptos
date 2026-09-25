@@ -56,6 +56,14 @@ impl AuthService {
         self.user.get()
     }
 
+    /// 当前 token（供需要鉴权的 API 调用使用；未登录为 None）。
+    ///
+    /// token 只存于 localStorage（内存仅存解析后的 user）；`init()` 已保证
+    /// 过期 token 被清除，与 `user()` 登录态一致。
+    pub(crate) fn token(&self) -> Option<String> {
+        stored_token()
+    }
+
     /// 登录成功：存储 token 并解析用户信息。
     /// 后台刚签发的 token 解析失败几乎不可能发生，仍保留 token 以便下次启动重试。
     pub(crate) fn login(&self, token: &str) {
