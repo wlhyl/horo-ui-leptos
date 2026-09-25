@@ -19,6 +19,8 @@ COPY . .
 # 镜像内前端使用同源相对路径 /api，由 ingress 路由到后台，本镜像不做反向代理。
 # 如需直连后台（走 CORS），可改为：ENV API_BASE_URL=https://api.example.com
 ENV API_BASE_URL=
+# 登录后台（horo-storage）同理：同源 /api/horo-admin 由 ingress 转发
+ENV ADMIN_API_BASE_URL=
 RUN trunk build --release
 
 # 预压缩产物（-k 保留原文件）；woff2/图片等本身已压缩的格式跳过，避免白白增大镜像

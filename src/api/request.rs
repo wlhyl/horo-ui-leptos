@@ -17,3 +17,10 @@ pub struct HoroNativeRequest {
     pub geo: GeoPosition,
     pub house: HouseName,
 }
+
+/// 登录请求体（horo-storage-api：name/password 均要求非空）。
+#[derive(Serialize)]
+pub struct LoginRequest {
+    pub name: String,
+    pub password: String,
+}

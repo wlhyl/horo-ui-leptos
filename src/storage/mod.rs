@@ -260,7 +260,8 @@ fn default_historical_data() -> HistoricalData {
 
 /// 获取 localStorage（非浏览器环境或访问被拒时返回 None）。
 /// 访问抛错（如沙箱 iframe 的 SecurityError）只警告一次，避免每次读写刷屏。
-fn local_storage() -> Option<web_sys::Storage> {
+/// auth 模块的 token 裸读写也复用此入口。
+pub(crate) fn local_storage() -> Option<web_sys::Storage> {
     let window = web_sys::window()?;
     match window.local_storage() {
         Ok(storage) => storage,

@@ -97,6 +97,37 @@
   background: rgba(184, 134, 11, 0.1);
 }
 
+/* 主操作按钮：由 input / user 等表单页共同引用 */
+.btn-primary {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  box-shadow: 0 6px 18px rgba(184, 134, 11, 0.28);
+  transition: transform 0.12s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.btn-primary:disabled {
+  cursor: default;
+  opacity: 0.6;
+  transform: none;
+}
+
 @media (min-width: 760px) {
   .field {
     grid-template-columns: 120px 1fr;

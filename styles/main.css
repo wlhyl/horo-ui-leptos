@@ -61,6 +61,7 @@ a {
 
 /* 表单控件的元素级基础样式（所有组件共享的设计系统底座） */
 input[type="text"],
+input[type="password"],
 input[type="number"],
 select {
   width: 100%;

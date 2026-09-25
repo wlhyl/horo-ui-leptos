@@ -211,7 +211,7 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
                 <GeoInput state=state/>
                 <HouseSelect state=state/>
 
-                <button class=style::btn_primary on:click=submit>
+                <button class=form::btn_primary on:click=submit>
                     {if mode == ChartMode::Native { "生成本命星盘" } else { "生成天象盘" }}
                 </button>
             </div>

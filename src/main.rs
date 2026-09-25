@@ -1,6 +1,7 @@
 mod api;
 mod app;
 mod astro;
+mod auth;
 mod components;
 mod config;
 mod enums;
@@ -10,6 +11,7 @@ mod native;
 mod render;
 mod routes;
 mod storage;
+mod user;
 
 use leptos::prelude::mount_to_body;
 

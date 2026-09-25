@@ -12,6 +12,12 @@ pub const API_BASE_URL: &str = match option_env!("API_BASE_URL") {
     None => "http://localhost:8080",
 };
 
+/// 登录 / 数据管理后台（horo-storage-api）的基址，规则同 [`API_BASE_URL`]。
+pub const ADMIN_API_BASE_URL: &str = match option_env!("ADMIN_API_BASE_URL") {
+    Some(s) => s,
+    None => "http://localhost:8081",
+};
+
 /// 星盘 / 相位 SVG 的视图尺寸（同时用于 `viewBox` 与几何计算）。
 pub const CHART_SVG_SIZE: f64 = 700.0;
 

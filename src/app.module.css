@@ -41,6 +41,38 @@
   flex: 1;
 }
 
+/* 顶栏右侧用户入口：图标 + 用户名/「登录」 */
+.user-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--indigo);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.user-entry svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.user-entry:hover {
+  background: rgba(79, 91, 213, 0.08);
+  border-color: rgba(79, 91, 213, 0.25);
+}
+
+.user-entry:active {
+  background: rgba(79, 91, 213, 0.14);
+}
+
 .app-main {
   flex: 1;
   width: 100%;

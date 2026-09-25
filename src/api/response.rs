@@ -1,4 +1,4 @@
-//! 与后台 horo-api 严格对齐的响应数据契约。
+//! 与后台 horo-api / horo-storage-api 严格对齐的响应数据契约。
 //! 后台 serde 默认使用 snake_case，枚举序列化为枚举名字符串（英文）。
 //! 仅声明前端需要的字段，其余字段由 serde 自动忽略。
 
@@ -8,6 +8,12 @@ use crate::enums::{
     house::HouseName,
     planet::{PlanetName, PlanetSpeedState},
 };
+
+/// 登录成功响应（horo-storage-api）：JWT token。
+#[derive(Deserialize)]
+pub struct TokenResponse {
+    pub token: String,
+}
 
 #[derive(Clone, Copy, Deserialize)]
 pub struct Planet {

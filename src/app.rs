@@ -1,11 +1,15 @@
 //! 应用外壳：响应式布局、顶部应用栏与路由。
 use leptos::prelude::*;
 use leptos_router::components::{Route, Router, Routes};
+use leptos_router::hooks::use_navigate;
+use leptos_router::NavigateOptions;
 
+use crate::auth::AuthService;
 use crate::home::Home;
 use crate::native;
 use crate::routes::AppRoute;
 use crate::storage::HoroStorage;
+use crate::user;
 
 // 作用域样式：src/app.module.css -> 类名形如 `app-shell-a1b2c3d`
 stylance::import_crate_style!(style, "src/app.module.css");
@@ -17,6 +21,9 @@ pub fn App() -> impl IntoView {
     // 本地存储服务：启动时从 localStorage 恢复（对应原版 HoroStorageService）
     let storage = HoroStorage::init();
     provide_context(storage);
+    // 认证服务：启动时从 localStorage 的 token 恢复登录态（对应原版 AuthService）
+    let auth = AuthService::init();
+    provide_context(auth);
 
     view! {
         <Router>
@@ -25,6 +32,7 @@ pub fn App() -> impl IntoView {
                     <div class=style::logo></div>
                     <h1>"星盘 · Horo"</h1>
                     <div class=style::spacer></div>
+                    <UserEntry/>
                 </header>
 
                 <main class=style::app_main>
@@ -34,9 +42,37 @@ pub fn App() -> impl IntoView {
                         <Route path=AppRoute::Event view=move || view! { <native::Input mode=native::ChartMode::Event/> }/>
                         <Route path=AppRoute::NativeChart view=move || view! { <native::Chart mode=native::ChartMode::Native/> }/>
                         <Route path=AppRoute::EventChart view=move || view! { <native::Chart mode=native::ChartMode::Event/> }/>
+                        <Route path=AppRoute::User view=move || view! { <user::User/> }/>
                     </Routes>
                 </main>
             </div>
         </Router>
+    }
+}
+
+/// 顶栏右侧的用户入口：未登录显示「登录」，已登录显示用户名，点击进入用户页。
+/// 必须是 Router 内的子组件：`use_navigate` 需在渲染期的 Router 上下文中调用。
+#[component]
+fn UserEntry() -> impl IntoView {
+    let nav = use_navigate();
+    let auth = use_context::<AuthService>().expect("AuthService 未初始化");
+
+    let go_user = move |_| {
+        nav(AppRoute::User.path(), NavigateOptions::default());
+    };
+
+    view! {
+        <button class=style::user_entry on:click=go_user>
+            // 用户图标（stroke 风格同首页图标）
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+            {move || match auth.user() {
+                Some(user) => user.name,
+                None => "登录".to_string(),
+            }}
+        </button>
     }
 }
