@@ -165,7 +165,7 @@ mod tests {
     #[test]
     fn get_planet_house_uses_five_degree_rule() {
         // 宫头落在星座中部（10°）：cusp-5 不跨星座，5 度规则正常生效
-        let cusps: Vec<f64> = (0..12).map(|i| 10.0 + i as f64 * 30.0).collect();
+        let cusps: Vec<f64> = (0..12u8).map(|i| 10.0 + f64::from(i) * 30.0).collect();
         // 第 1 宫区间 [10-5, 40-5) = [5, 35)
         assert_eq!(get_planet_house(5.0, &cusps), Ok(1));
         assert_eq!(get_planet_house(34.9, &cusps), Ok(1));
@@ -175,7 +175,7 @@ mod tests {
         assert_eq!(get_planet_house(3.0, &cusps), Ok(12));
         // 宫头恰在星座 0°（0°=白羊 0°）：回拉跨星座 → 边界取星座 0°=宫头本身，
         // 5 度回拉失效，第 1 宫区间 [0, 30)，30° 起归第 2 宫
-        let whole: Vec<f64> = (0..12).map(|i| i as f64 * 30.0).collect();
+        let whole: Vec<f64> = (0..12u8).map(|i| f64::from(i) * 30.0).collect();
         assert_eq!(get_planet_house(0.0, &whole), Ok(1));
         assert_eq!(get_planet_house(25.0, &whole), Ok(1));
         assert_eq!(get_planet_house(30.0, &whole), Ok(2));

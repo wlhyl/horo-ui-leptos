@@ -1,7 +1,7 @@
 //! 后台 HTTP 调用封装（gloo-net，wasm fetch）。
 
 use crate::api::request::{HoroNativeRequest, LoginRequest};
-use crate::api::response::{Horoscope, LocationResponse, TokenResponse};
+use crate::api::response::{Horoscope, HoroscopeRecord, LocationResponse, PageResponser, TokenResponse};
 use crate::config::{ADMIN_API_BASE_URL, API_BASE_URL};
 use gloo_net::http::Request;
 use serde::Deserialize;
@@ -67,6 +67,56 @@ pub async fn get_location_search(q: &str, token: &str) -> Result<Vec<LocationRes
             .await
             .map_err(|e| format!("解析响应失败：{e}")),
         404 | 403 => {
+            let msg = res
+                .json::<ErrorResponse>()
+                .await
+                .map(|r| r.error)
+                .unwrap_or_else(|_| "查询失败".into());
+            Err(msg)
+        }
+        status => Err(format!("查询失败（HTTP {status}）")),
+    }
+}
+
+/// 调用 GET /api/horo-admin/horoscopes 分页列出档案记录。
+pub async fn get_horoscopes(
+    page: u64,
+    size: u64,
+    token: &str,
+) -> Result<PageResponser<HoroscopeRecord>, String> {
+    let url = format!("{ADMIN_API_BASE_URL}/api/horo-admin/horoscopes?page={page}&size={size}");
+    fetch_records(&url, token).await
+}
+
+/// 调用 GET /api/horo-admin/horoscopes/search 按姓名模糊搜索档案记录。
+pub async fn search_horoscopes(
+    page: u64,
+    size: u64,
+    name: &str,
+    token: &str,
+) -> Result<PageResponser<HoroscopeRecord>, String> {
+    // 姓名可能含中文，必须 URL 编码
+    let name = js_sys::encode_uri_component(name).as_string().unwrap_or_default();
+    let url = format!(
+        "{ADMIN_API_BASE_URL}/api/horo-admin/horoscopes/search?page={page}&size={size}&name={name}"
+    );
+    fetch_records(&url, token).await
+}
+
+/// 档案记录接口公共请求逻辑：token 头 + 状态码错误映射
+/// （400 校验失败 / 401 未认证 / 403 无权限 / 404 不存在，均返回 `{"error": "..."}`）。
+async fn fetch_records(url: &str, token: &str) -> Result<PageResponser<HoroscopeRecord>, String> {
+    let res = Request::get(url)
+        .header("token", token)
+        .send()
+        .await
+        .map_err(|e| format!("网络错误：{e}"))?;
+    match res.status() {
+        200 => res
+            .json::<PageResponser<HoroscopeRecord>>()
+            .await
+            .map_err(|e| format!("解析响应失败：{e}")),
+        400 | 401 | 403 | 404 => {
             let msg = res
                 .json::<ErrorResponse>()
                 .await

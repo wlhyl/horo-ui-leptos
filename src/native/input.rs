@@ -5,7 +5,7 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use leptos_router::NavigateOptions;
 
-use crate::components::{AlertDialog, DateTimeInput, GeoInput, HouseSelect};
+use crate::components::{AlertDialog, ArchiveSelector, DateTimeInput, GeoInput, HouseSelect};
 use crate::native::ChartMode;
 use crate::enums::house::HouseName;
 use crate::models::data::HoroData;
@@ -155,7 +155,11 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
 
     view! {
         <div class=card::card>
-            <h2>{if mode == ChartMode::Native { "本命星盘" } else { "天象盘" }}</h2>
+            // 标题行：右侧放「从档案库选择」（整表级回填入口，两种盘模式均可用）
+            <div class=style::header>
+                <h2>{if mode == ChartMode::Native { "本命星盘" } else { "天象盘" }}</h2>
+                <ArchiveSelector state=state/>
+            </div>
             <div class=style::form_grid>
                 // 姓名 / 性别：本命盘与天象盘都需要（对齐原版 native.page.html）
                 <div class=form::field>

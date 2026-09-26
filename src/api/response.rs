@@ -62,6 +62,54 @@ pub struct FixedStar {
     pub desc: String,
 }
 
+/// 档案记录的盘类型（horo-storage-api）：本命 natal / 卜卦 horary。
+#[derive(Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ChartType {
+    Natal,
+    Horary,
+}
+
+/// 档案记录中的出生地（度分秒 + 半球标志，对应 storage-api 的 Location）。
+#[derive(Clone, Deserialize)]
+pub struct RecordLocation {
+    pub name: String,
+    pub is_east: bool,
+    pub longitude_degree: u16,
+    pub longitude_minute: u8,
+    pub longitude_second: u8,
+    pub is_north: bool,
+    pub latitude_degree: u8,
+    pub latitude_minute: u8,
+    pub latitude_second: u8,
+}
+
+/// 档案记录（horo-storage-api 的 horoscopes 接口），仅声明前端需要的字段。
+#[derive(Clone, Deserialize)]
+pub struct HoroscopeRecord {
+    pub id: u32,
+    pub name: String,
+    pub gender: bool,
+    pub birth_year: i32,
+    pub birth_month: u8,
+    pub birth_day: u8,
+    pub birth_hour: u8,
+    pub birth_minute: u8,
+    pub birth_second: u8,
+    pub time_zone_offset: f64,
+    pub is_dst: bool,
+    pub location: RecordLocation,
+    pub chart_type: ChartType,
+    pub is_time_precise: bool,
+}
+
+/// 分页响应（horo-storage-api）：`total` 为总页数。
+#[derive(Deserialize)]
+pub struct PageResponser<T> {
+    pub data: Vec<T>,
+    pub total: u64,
+}
+
 #[derive(Clone, Deserialize)]
 pub struct Horoscope {
     pub house_name: HouseName,

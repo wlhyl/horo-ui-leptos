@@ -1,3 +1,12 @@
+/* 标题行：标题 + 次级入口（从档案库选择） */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr;
