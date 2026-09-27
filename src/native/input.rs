@@ -4,6 +4,7 @@ use std::cell::Cell;
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use leptos_router::NavigateOptions;
+use reactive_stores::Store;
 
 use crate::components::{AlertDialog, ArchiveSelector, DateTimeInput, GeoInput, HouseSelect};
 use crate::native::ChartMode;
@@ -24,8 +25,8 @@ stylance::import_crate_style!(
     "src/shared/form.module.css"
 );
 
-/// 表单状态（保存在信号中）。
-#[derive(Clone)]
+/// 表单状态（保存在 Store 中：字段级细粒度响应，改一个字段不会惊扰其他字段的绑定）。
+#[derive(Clone, Store)]
 pub(crate) struct FormState {
     /// 档案 ID（随缓存数据往返，表单不编辑）
     pub id: u32,
@@ -96,16 +97,26 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
         ChartMode::Event => storage.event_data(),
         ChartMode::Native => storage.horo_data(),
     };
-    let state = RwSignal::new(FormState::from(restored));
+    let state = Store::new(FormState::from(restored));
     let err = RwSignal::new(String::new());
 
     // 夏令时提示：日期字段变化且处于中国夏令时区间时弹框（对应原版
     // onDateChange 的 alertController，不区分是否已勾选 st）。前值记的是
-    // 整个日期而非布尔：姓名等无关字段变化不触发，区间内改日期仍会提示。
+    // 整个日期而非布尔：区间内改日期仍会提示；逐字段读取只追踪日期字段，
+    // 姓名、地点等无关字段变化连本 Effect 都不会重跑。
     let dst_alert = RwSignal::new(String::new());
     let prev_date = Cell::new(None::<DateTimeData>);
     Effect::new(move || {
-        let d = state.get().date();
+        let d = DateTimeData {
+            year: state.year().get(),
+            month: state.month().get(),
+            day: state.day().get(),
+            hour: state.hour().get(),
+            minute: state.minute().get(),
+            second: state.second().get(),
+            tz: state.tz().get(),
+            st: state.st().get(),
+        };
         if let Some(prev) = prev_date.get() {
             if d != prev && d.is_in_chinese_dst() && (d.tz as i32) == 8 {
                 dst_alert.set(format!(
@@ -117,8 +128,9 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
         prev_date.set(Some(d));
     });
 
+    // Store 没有 With（Get）实现，读整体快照用 read() 拿 guard（零 clone）
     let submit = move |_| {
-        let s = state.get();
+        let s = state.read();
         if s.year < 1900 {
             err.set("年份需 ≥ 1900".into());
             return;
@@ -165,32 +177,22 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
                 <div class=form::field>
                     <label>"姓名"</label>
                     <div class=form::control>
-                        <input
-                            type="text"
-                            placeholder="可选"
-                            value=move || state.get().name
-                            on:input=move |ev| {
-                                let mut s = state.get();
-                                s.name = event_target_value(&ev);
-                                state.set(s);
-                            }
-                        />
+                        // 字段直接绑定：Subfield 实现了 IntoSplitSignal，无需派生 Signal 的样板
+                        <input type="text" placeholder="可选" bind:value=state.name()/>
                     </div>
                 </div>
                 <div class=form::field>
                     <label>"性别"</label>
                     <div class=form::control>
                         <div class=form::radio_group>
+                            // on:click 只在点击本颗时触发（键盘方向键选组同样派发 click），
+                            // 并写入固定值：change 会连带到被取消选中的那颗，读事件状态会相互覆盖
                             <label>
                                 <input
                                     type="radio"
                                     name="sex"
-                                    checked=move || state.get().sex
-                                    on:change=move |_| {
-                                        let mut s = state.get();
-                                        s.sex = true;
-                                        state.set(s);
-                                    }
+                                    prop:checked=move || state.sex().get()
+                                    on:click=move |_| state.sex().set(true)
                                 />
                                 <span>"男"</span>
                             </label>
@@ -198,12 +200,8 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
                                 <input
                                     type="radio"
                                     name="sex"
-                                    checked=move || !state.get().sex
-                                    on:change=move |_| {
-                                        let mut s = state.get();
-                                        s.sex = false;
-                                        state.set(s);
-                                    }
+                                    prop:checked=move || !state.sex().get()
+                                    on:click=move |_| state.sex().set(false)
                                 />
                                 <span>"女"</span>
                             </label>

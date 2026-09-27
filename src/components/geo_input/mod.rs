@@ -1,14 +1,15 @@
-//! 地名搜索与经纬度输入（绑定 FormState 信号）。
+//! 地名搜索与经纬度输入（绑定 FormState Store，字段级读写）。
 //!
 //! 地名可直接输入并随表单提交缓存；点击「搜索」或回车调用后台
 //! location_search 查询，从结果列表点选后回填地名与经纬度。
 use leptos::prelude::*;
+use reactive_stores::Store;
 use wasm_bindgen_futures::spawn_local;
 
 use crate::api::client::get_location_search;
 use crate::api::response::LocationResponse;
 use crate::auth::AuthService;
-use crate::native::input::FormState;
+use crate::native::input::{FormState, FormStateStoreFields};
 
 // 作用域样式：src/components/geo_input/geo_input.module.css
 stylance::import_crate_style!(style, "src/components/geo_input/geo_input.module.css");
@@ -20,7 +21,7 @@ stylance::import_crate_style!(
 );
 
 #[component]
-pub fn GeoInput(state: RwSignal<FormState>) -> impl IntoView {
+pub fn GeoInput(state: Store<FormState>) -> impl IntoView {
     let auth = use_context::<AuthService>().expect("AuthService 未初始化");
 
     let querying = RwSignal::new(false);
@@ -29,7 +30,7 @@ pub fn GeoInput(state: RwSignal<FormState>) -> impl IntoView {
 
     // 搜索地名：请求中禁用重复提交，结果与错误互斥展示
     let search = move || {
-        let name = state.get().geo_name.trim().to_owned();
+        let name = state.geo_name().get().trim().to_owned();
         if name.is_empty() || querying.get() {
             return;
         }
@@ -54,11 +55,12 @@ pub fn GeoInput(state: RwSignal<FormState>) -> impl IntoView {
         if let Some(loc) = locations.get().into_iter().nth(i) {
             match (loc.longitude.parse::<f64>(), loc.latitude.parse::<f64>()) {
                 (Ok(long), Ok(lat)) => {
-                    let mut s = state.get();
-                    s.geo_name = loc.name.clone();
-                    s.long = long;
-                    s.lat = lat;
-                    state.set(s);
+                    // 整体写入：地名与经纬度一次成组更新，避免中间态
+                    state.update(|s| {
+                        s.geo_name = loc.name.clone();
+                        s.long = long;
+                        s.lat = lat;
+                    });
                     locations.set(Vec::new());
                 }
                 _ => leptos::logging::warn!("经纬度解析失败，跳过：{}", loc.name),
@@ -74,12 +76,7 @@ pub fn GeoInput(state: RwSignal<FormState>) -> impl IntoView {
                     type="text"
                     placeholder="输入地名搜索经纬度"
                     class=style::name_input
-                    prop:value=move || state.get().geo_name
-                    on:input=move |ev| {
-                        let mut s = state.get();
-                        s.geo_name = event_target_value(&ev);
-                        state.set(s);
-                    }
+                    bind:value=state.geo_name()
                     on:keydown=move |ev| {
                         if ev.key() == "Enter" {
                             ev.prevent_default();
@@ -132,12 +129,10 @@ pub fn GeoInput(state: RwSignal<FormState>) -> impl IntoView {
                     type="number"
                     step="0.0001"
                     placeholder="东经为正"
-                    prop:value=move || state.get().long.to_string()
+                    prop:value=move || state.long().get().to_string()
                     on:input=move |ev| {
                         if let Ok(v) = event_target_value(&ev).parse() {
-                            let mut s = state.get();
-                            s.long = v;
-                            state.set(s);
+                            state.long().set(v);
                         }
                     }
                 />
@@ -151,12 +146,10 @@ pub fn GeoInput(state: RwSignal<FormState>) -> impl IntoView {
                     type="number"
                     step="0.0001"
                     placeholder="北纬为正"
-                    prop:value=move || state.get().lat.to_string()
+                    prop:value=move || state.lat().get().to_string()
                     on:input=move |ev| {
                         if let Ok(v) = event_target_value(&ev).parse() {
-                            let mut s = state.get();
-                            s.lat = v;
-                            state.set(s);
+                            state.lat().set(v);
                         }
                     }
                 />

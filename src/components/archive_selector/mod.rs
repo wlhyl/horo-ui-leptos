@@ -8,6 +8,7 @@
 //! 信号类型满足且为 Copy，可直接在闭包间共享。
 use leptos::control_flow::Show;
 use leptos::prelude::*;
+use reactive_stores::Store;
 use wasm_bindgen_futures::spawn_local;
 
 use crate::api::client::{get_horoscopes, search_horoscopes};
@@ -39,7 +40,7 @@ async fn sleep_ms(ms: i32) {
 
 /// 从档案库选择天宫图记录：入口按钮 + 模态选择框。
 #[component]
-pub fn ArchiveSelector(state: RwSignal<FormState>) -> impl IntoView {
+pub fn ArchiveSelector(state: Store<FormState>) -> impl IntoView {
     let auth = use_context::<AuthService>().expect("AuthService 未初始化");
 
     let open = RwSignal::new(false);
@@ -176,22 +177,23 @@ pub fn ArchiveSelector(state: RwSignal<FormState>) -> impl IntoView {
             lat = -lat;
         }
 
-        let mut s = state.get();
-        s.id = r.id;
-        s.name = r.name;
-        s.sex = r.gender;
-        s.year = r.birth_year;
-        s.month = r.birth_month;
-        s.day = r.birth_day;
-        s.hour = r.birth_hour;
-        s.minute = r.birth_minute;
-        s.second = r.birth_second;
-        s.tz = r.time_zone_offset;
-        s.st = r.is_dst;
-        s.geo_name = r.location.name.clone();
-        s.long = long;
-        s.lat = lat;
-        state.set(s);
+        // 14 个字段一次成组回填：单次通知，避免逐字段 set 产生新旧混合的中间态
+        state.update(move |s| {
+            s.id = r.id;
+            s.name = r.name;
+            s.sex = r.gender;
+            s.year = r.birth_year;
+            s.month = r.birth_month;
+            s.day = r.birth_day;
+            s.hour = r.birth_hour;
+            s.minute = r.birth_minute;
+            s.second = r.birth_second;
+            s.tz = r.time_zone_offset;
+            s.st = r.is_dst;
+            s.geo_name = r.location.name.clone();
+            s.long = long;
+            s.lat = lat;
+        });
         open.set(false);
     };
 
