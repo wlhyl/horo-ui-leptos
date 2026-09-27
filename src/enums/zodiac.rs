@@ -34,6 +34,22 @@ impl Zodiac {
             _ => unreachable!("星座索引必须在 0..12 内"),
         }
     }
+
+    /// 全部 12 星座（按黄道顺序），用于需要遍历所有星座的场景。
+    pub(crate) const ALL: [Zodiac; 12] = [
+        Zodiac::Aries,
+        Zodiac::Taurus,
+        Zodiac::Gemini,
+        Zodiac::Cancer,
+        Zodiac::Leo,
+        Zodiac::Virgo,
+        Zodiac::Libra,
+        Zodiac::Scorpio,
+        Zodiac::Sagittarius,
+        Zodiac::Capricorn,
+        Zodiac::Aquarius,
+        Zodiac::Pisces,
+    ];
 }
 
 /// 用户面向的展示名，实现后自动获得 `to_string()`。

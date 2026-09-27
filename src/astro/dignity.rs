@@ -5,7 +5,8 @@ use crate::enums::planet::PlanetName;
 use crate::enums::zodiac::Zodiac;
 
 /// 尊贵种类。
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(test, derive(Debug))]
 pub(crate) enum DignityKind {
     Rulership,
     Exaltation,
@@ -97,6 +98,25 @@ pub(crate) fn triplicity_of_lily(z: Zodiac) -> [PlanetName; 2] {
             [PlanetName::Saturn, PlanetName::Mercury]
         }
         Zodiac::Cancer | Zodiac::Scorpio | Zodiac::Pisces => [PlanetName::Mars, PlanetName::Mars],
+    }
+}
+
+/// 标准（Dorothean）三分性主星：每元素三主星，火/土/风/水各一组。
+/// 区别于 [`triplicity_of_lily`]（仅两主星），此为「本命所用」力量表使用的版本。
+pub(crate) fn triplicity(z: Zodiac) -> [PlanetName; 3] {
+    match z {
+        Zodiac::Aries | Zodiac::Leo | Zodiac::Sagittarius => {
+            [PlanetName::Sun, PlanetName::Jupiter, PlanetName::Saturn]
+        }
+        Zodiac::Capricorn | Zodiac::Taurus | Zodiac::Virgo => {
+            [PlanetName::Venus, PlanetName::Moon, PlanetName::Mars]
+        }
+        Zodiac::Libra | Zodiac::Aquarius | Zodiac::Gemini => {
+            [PlanetName::Saturn, PlanetName::Mercury, PlanetName::Jupiter]
+        }
+        Zodiac::Cancer | Zodiac::Scorpio | Zodiac::Pisces => {
+            [PlanetName::Venus, PlanetName::Mars, PlanetName::Moon]
+        }
     }
 }
 
@@ -208,6 +228,96 @@ pub(crate) fn ptolemy_terms(z: Zodiac) -> [(PlanetName, u8); 5] {
     }
 }
 
+/// 星座的埃及界：五段 (主星, 区间上界度数)。用于「本命所用」力量表。
+pub(crate) fn egyptian_terms(z: Zodiac) -> [(PlanetName, u8); 5] {
+    match z {
+        Zodiac::Aries => [
+            (PlanetName::Jupiter, 6),
+            (PlanetName::Venus, 12),
+            (PlanetName::Mercury, 20),
+            (PlanetName::Mars, 25),
+            (PlanetName::Saturn, 30),
+        ],
+        Zodiac::Taurus => [
+            (PlanetName::Venus, 8),
+            (PlanetName::Mercury, 14),
+            (PlanetName::Jupiter, 22),
+            (PlanetName::Saturn, 27),
+            (PlanetName::Mars, 30),
+        ],
+        Zodiac::Gemini => [
+            (PlanetName::Mercury, 6),
+            (PlanetName::Jupiter, 12),
+            (PlanetName::Venus, 17),
+            (PlanetName::Mars, 24),
+            (PlanetName::Saturn, 30),
+        ],
+        Zodiac::Cancer => [
+            (PlanetName::Mars, 7),
+            (PlanetName::Venus, 13),
+            (PlanetName::Mercury, 19),
+            (PlanetName::Jupiter, 26),
+            (PlanetName::Saturn, 30),
+        ],
+        Zodiac::Leo => [
+            (PlanetName::Jupiter, 6),
+            (PlanetName::Venus, 11),
+            (PlanetName::Saturn, 18),
+            (PlanetName::Mercury, 24),
+            (PlanetName::Mars, 30),
+        ],
+        Zodiac::Virgo => [
+            (PlanetName::Mercury, 7),
+            (PlanetName::Venus, 17),
+            (PlanetName::Jupiter, 21),
+            (PlanetName::Mars, 28),
+            (PlanetName::Saturn, 30),
+        ],
+        Zodiac::Libra => [
+            (PlanetName::Saturn, 6),
+            (PlanetName::Mercury, 14),
+            (PlanetName::Jupiter, 21),
+            (PlanetName::Venus, 28),
+            (PlanetName::Mars, 30),
+        ],
+        Zodiac::Scorpio => [
+            (PlanetName::Mars, 7),
+            (PlanetName::Venus, 11),
+            (PlanetName::Mercury, 19),
+            (PlanetName::Jupiter, 24),
+            (PlanetName::Saturn, 30),
+        ],
+        Zodiac::Sagittarius => [
+            (PlanetName::Jupiter, 12),
+            (PlanetName::Venus, 17),
+            (PlanetName::Mercury, 21),
+            (PlanetName::Saturn, 26),
+            (PlanetName::Mars, 30),
+        ],
+        Zodiac::Capricorn => [
+            (PlanetName::Mercury, 7),
+            (PlanetName::Jupiter, 14),
+            (PlanetName::Venus, 22),
+            (PlanetName::Saturn, 26),
+            (PlanetName::Mars, 30),
+        ],
+        Zodiac::Aquarius => [
+            (PlanetName::Mercury, 7),
+            (PlanetName::Venus, 13),
+            (PlanetName::Jupiter, 20),
+            (PlanetName::Mars, 25),
+            (PlanetName::Saturn, 30),
+        ],
+        Zodiac::Pisces => [
+            (PlanetName::Venus, 12),
+            (PlanetName::Jupiter, 16),
+            (PlanetName::Mercury, 19),
+            (PlanetName::Mars, 28),
+            (PlanetName::Saturn, 30),
+        ],
+    }
+}
+
 /// 某黄道位置的全部尊贵主星。
 pub(crate) struct DignityLords {
     pub rulership: PlanetName,
@@ -271,7 +381,10 @@ pub(crate) fn get_dignities_of(
 
 #[cfg(test)]
 mod tests {
-    use super::{exaltation, fall, get_dignities_of, get_dignity_lords_at, rulership, DignityKind};
+    use super::{
+        egyptian_terms, exaltation, fall, get_dignities_of, get_dignity_lords_at, rulership,
+        triplicity, DignityKind,
+    };
     use crate::enums::planet::PlanetName;
     use crate::enums::zodiac::Zodiac;
 
@@ -328,5 +441,40 @@ mod tests {
                 DignityKind::Term
             ]
         );
+    }
+
+    #[test]
+    fn triplicity_standard_three_lords() {
+        // 火象：日/木/土（区别于 Lily 的两主星版）
+        assert_eq!(
+            triplicity(Zodiac::Aries),
+            [PlanetName::Sun, PlanetName::Jupiter, PlanetName::Saturn]
+        );
+        // 水象：金/火/月
+        assert_eq!(
+            triplicity(Zodiac::Cancer),
+            [PlanetName::Venus, PlanetName::Mars, PlanetName::Moon]
+        );
+    }
+
+    #[test]
+    fn egyptian_terms_bounds() {
+        // 白羊埃及界：木(6) 金(12) 水(20) 火(25) 土(30)
+        assert_eq!(
+            egyptian_terms(Zodiac::Aries),
+            [
+                (PlanetName::Jupiter, 6),
+                (PlanetName::Venus, 12),
+                (PlanetName::Mercury, 20),
+                (PlanetName::Mars, 25),
+                (PlanetName::Saturn, 30),
+            ]
+        );
+        // 每星座五段上界之和及末段均为 30
+        for z in 0..12u8 {
+            let terms = egyptian_terms(Zodiac::from_index(z));
+            assert_eq!(terms.len(), 5);
+            assert_eq!(terms[4].1, 30);
+        }
     }
 }

@@ -18,6 +18,8 @@ pub enum AppRoute {
     User,
     /// 清除缓存页。
     Clean,
+    /// 行星力量表页。
+    Power,
 }
 
 impl AppRoute {
@@ -31,6 +33,7 @@ impl AppRoute {
             AppRoute::EventChart => "/event/chart",
             AppRoute::User => "/user",
             AppRoute::Clean => "/clean",
+            AppRoute::Power => "/power",
         }
     }
 
@@ -114,6 +117,7 @@ mod tests {
             AppRoute::EventChart,
             AppRoute::User,
             AppRoute::Clean,
+            AppRoute::Power,
         ] {
             let mut segments = Vec::new();
             route.generate_path(&mut segments);

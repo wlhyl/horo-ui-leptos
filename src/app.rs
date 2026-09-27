@@ -8,6 +8,7 @@ use crate::auth::AuthService;
 use crate::clean;
 use crate::home::Home;
 use crate::native;
+use crate::power;
 use crate::routes::AppRoute;
 use crate::storage::HoroStorage;
 use crate::user;
@@ -45,6 +46,7 @@ pub fn App() -> impl IntoView {
                         <Route path=AppRoute::EventChart view=move || view! { <native::Chart mode=native::ChartMode::Event/> }/>
                         <Route path=AppRoute::User view=move || view! { <user::User/> }/>
                         <Route path=AppRoute::Clean view=move || view! { <clean::Clean/> }/>
+                        <Route path=AppRoute::Power view=move || view! { <power::Power/> }/>
                     </Routes>
                 </main>
             </div>

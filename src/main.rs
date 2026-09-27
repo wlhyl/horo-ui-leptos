@@ -8,6 +8,7 @@ mod config;
 mod enums;
 mod home;
 mod models;
+mod power;
 mod native;
 mod render;
 mod routes;

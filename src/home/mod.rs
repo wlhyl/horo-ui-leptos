@@ -25,8 +25,17 @@ pub fn Home() -> impl IntoView {
             nav(AppRoute::Event.path(), NavigateOptions::default());
         }
     };
-    let go_clean = move |_| {
-        nav(AppRoute::Clean.path(), NavigateOptions::default());
+    let go_clean = {
+        let nav = nav.clone();
+        move |_| {
+            nav(AppRoute::Clean.path(), NavigateOptions::default());
+        }
+    };
+    let go_power = {
+        let nav = nav.clone();
+        move |_| {
+            nav(AppRoute::Power.path(), NavigateOptions::default());
+        }
     };
 
     view! {
@@ -54,6 +63,23 @@ pub fn Home() -> impl IntoView {
                     </div>
                     <div class=style::home_name>"天象盘"</div>
                     <div class=style::home_desc>"任意时刻天象"</div>
+                </button>
+                // 行星力量表入口：静态占星参考（庙/旺/三分/界/面/陷/落）
+                <button class=style::home_card on:click=go_power>
+                    <div class=style::home_icon>
+                        // 天平轮廓，象征尊贵力量对照
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3v18"/>
+                            <path d="M7 21h10"/>
+                            <path d="M5 7h14"/>
+                            <path d="M5 7l-3 6a3 3 0 0 0 6 0z"/>
+                            <path d="M19 7l-3 6a3 3 0 0 0 6 0z"/>
+                            <circle cx="12" cy="4" r="1.4"/>
+                        </svg>
+                    </div>
+                    <div class=style::home_name>"行星力量表"</div>
+                    <div class=style::home_desc>"庙旺休囚 · 界面尊贵"</div>
                 </button>
                 // 清除缓存入口（对应原版 home 页的 Clean 菜单项）
                 <button class=style::home_card on:click=go_clean>

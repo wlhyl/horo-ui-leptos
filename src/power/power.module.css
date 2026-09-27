@@ -1,0 +1,201 @@
+/*! 行星力量表页面样式：标题区 / 分段切换 / 尊贵表。 */
+
+.page {
+  min-height: 100%;
+  padding: 16px 16px 32px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ---------- 顶部标题区 ---------- */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.back_btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-1);
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.back_btn:hover {
+  color: var(--gold);
+  border-color: var(--gold-2);
+  transform: translateX(-2px);
+}
+
+.back_btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.title {
+  position: relative;
+  margin: 0;
+  padding-left: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-0);
+  display: flex;
+  align-items: center;
+}
+
+.title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--gold), var(--indigo));
+}
+
+/* ---------- 分段切换 ---------- */
+
+.segment {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.segment_btn,
+.segment_btn_active {
+  flex: 1;
+  padding: 9px 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-1);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.segment_btn:hover {
+  color: var(--indigo);
+}
+
+.segment_btn_active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.28);
+  transform: scale(1.01);
+}
+
+/* ---------- 表格卡片 ---------- */
+
+.table_card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.table_scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 720px;
+  font-size: 14px;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  padding: 12px 8px;
+  background: linear-gradient(180deg, rgba(79, 91, 213, 0.1), rgba(184, 134, 11, 0.08));
+  color: var(--text-0);
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+
+.th_zodiac {
+  width: 48px;
+  text-align: center;
+}
+
+.table tbody td {
+  padding: 10px 8px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr {
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.table tbody tr:hover {
+  background: rgba(184, 134, 11, 0.18);
+}
+
+/* 行左侧高亮强调条 */
+.table tbody tr:hover td:first-child {
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+/* 让星座列在 hover 时也随之点亮（原本有独立底色会盖住行高亮）*/
+.table tbody tr:hover .td_zodiac {
+  background: transparent;
+}
+
+.td_zodiac {
+  background: rgba(184, 134, 11, 0.05);
+}
+
+/* 占星符号强制按文字字形渲染，避免被当彩色 emoji */
+.glyph {
+  font-variant-emoji: text;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.table tbody tr:hover .glyph {
+  transform: scale(1.22);
+  text-shadow: 0 0 8px rgba(184, 134, 11, 0.5);
+}
+
+/* 界 / 面 列中附带的度数小字 */
+.deg {
+  display: inline-block;
+  margin-left: 3px;
+  font-size: 11px;
+  font-variant-emoji: normal;
+  color: var(--text-1);
+  vertical-align: middle;
+}
