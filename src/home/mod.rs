@@ -25,6 +25,9 @@ pub fn Home() -> impl IntoView {
             nav(AppRoute::Event.path(), NavigateOptions::default());
         }
     };
+    let go_clean = move |_| {
+        nav(AppRoute::Clean.path(), NavigateOptions::default());
+    };
 
     view! {
         <div class=style::home>
@@ -51,6 +54,22 @@ pub fn Home() -> impl IntoView {
                     </div>
                     <div class=style::home_name>"天象盘"</div>
                     <div class=style::home_desc>"任意时刻天象"</div>
+                </button>
+                // 清除缓存入口（对应原版 home 页的 Clean 菜单项）
+                <button class=style::home_card on:click=go_clean>
+                    <div class=style::home_icon>
+                        // 垃圾桶轮廓，表示清除/缓存清理
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"/>
+                            <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                            <path d="M10 11v6"/>
+                            <path d="M14 11v6"/>
+                        </svg>
+                    </div>
+                    <div class=style::home_name>"清除缓存"</div>
+                    <div class=style::home_desc>"清空本地星盘数据"</div>
                 </button>
             </div>
         </div>

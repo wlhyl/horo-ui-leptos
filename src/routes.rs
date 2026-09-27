@@ -16,6 +16,8 @@ pub enum AppRoute {
     EventChart,
     /// 用户登录页。
     User,
+    /// 清除缓存页。
+    Clean,
 }
 
 impl AppRoute {
@@ -28,6 +30,7 @@ impl AppRoute {
             AppRoute::NativeChart => "/native/chart",
             AppRoute::EventChart => "/event/chart",
             AppRoute::User => "/user",
+            AppRoute::Clean => "/clean",
         }
     }
 
@@ -95,6 +98,10 @@ mod tests {
         assert!(matches(AppRoute::User, "/user"));
         assert!(!matches(AppRoute::User, "/"));
         assert!(!matches(AppRoute::Home, "/user"));
+
+        assert!(matches(AppRoute::Clean, "/clean"));
+        assert!(!matches(AppRoute::Clean, "/native"));
+        assert!(!matches(AppRoute::Home, "/clean"));
     }
 
     #[test]
@@ -106,6 +113,7 @@ mod tests {
             AppRoute::NativeChart,
             AppRoute::EventChart,
             AppRoute::User,
+            AppRoute::Clean,
         ] {
             let mut segments = Vec::new();
             route.generate_path(&mut segments);

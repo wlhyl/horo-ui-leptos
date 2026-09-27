@@ -2,6 +2,7 @@ mod api;
 mod app;
 mod astro;
 mod auth;
+mod clean;
 mod components;
 mod config;
 mod enums;

@@ -5,6 +5,7 @@ use leptos_router::hooks::use_navigate;
 use leptos_router::NavigateOptions;
 
 use crate::auth::AuthService;
+use crate::clean;
 use crate::home::Home;
 use crate::native;
 use crate::routes::AppRoute;
@@ -43,6 +44,7 @@ pub fn App() -> impl IntoView {
                         <Route path=AppRoute::NativeChart view=move || view! { <native::Chart mode=native::ChartMode::Native/> }/>
                         <Route path=AppRoute::EventChart view=move || view! { <native::Chart mode=native::ChartMode::Event/> }/>
                         <Route path=AppRoute::User view=move || view! { <user::User/> }/>
+                        <Route path=AppRoute::Clean view=move || view! { <clean::Clean/> }/>
                     </Routes>
                 </main>
             </div>
