@@ -31,7 +31,7 @@ pub fn App() -> impl IntoView {
             <div class=style::app_shell>
                 <header class=style::app_bar>
                     <div class=style::logo></div>
-                    <h1>"星盘 · Horo"</h1>
+                    <TitleHome/>
                     <div class=style::spacer></div>
                     <UserEntry/>
                 </header>
@@ -49,6 +49,20 @@ pub fn App() -> impl IntoView {
                 </main>
             </div>
         </Router>
+    }
+}
+
+/// 顶栏标题「星盘 · Horo」：点击回到首页。
+/// 必须是 Router 内的子组件：`use_navigate` 需在渲染期的 Router 上下文中调用。
+#[component]
+fn TitleHome() -> impl IntoView {
+    let nav = use_navigate();
+    let go_home = move |_| {
+        nav(AppRoute::Home.path(), NavigateOptions::default());
+    };
+
+    view! {
+        <h1 class=style::title_home on:click=go_home>"星盘 · Horo"</h1>
     }
 }
 
