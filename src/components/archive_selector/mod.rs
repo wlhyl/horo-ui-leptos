@@ -15,7 +15,7 @@ use crate::api::client::{get_horoscopes, search_horoscopes};
 use crate::api::response::{ChartType, HoroscopeRecord};
 use crate::auth::AuthService;
 use crate::components::AlertDialog;
-use crate::native::input::FormState;
+use crate::components::FormState;
 
 // 作用域样式：src/components/archive_selector/archive_selector.module.css
 stylance::import_crate_style!(

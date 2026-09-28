@@ -3,7 +3,7 @@ use leptos::prelude::*;
 use reactive_stores::Store;
 
 use crate::enums::house::HouseName;
-use crate::native::input::{FormState, FormStateStoreFields};
+use crate::components::{FormState, FormStateStoreFields};
 
 stylance::import_crate_style!(
     #[allow(dead_code)]

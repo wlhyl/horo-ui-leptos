@@ -6,12 +6,13 @@ use leptos_router::hooks::use_navigate;
 use leptos_router::NavigateOptions;
 use reactive_stores::Store;
 
-use crate::components::{AlertDialog, ArchiveSelector, DateTimeInput, GeoInput, HouseSelect};
+use crate::components::{
+    AlertDialog, ArchiveSelector, DateTimeInput, FormState, FormStateStoreFields, GeoInput,
+    HouseSelect,
+};
 use crate::native::ChartMode;
-use crate::enums::house::HouseName;
 use crate::models::data::HoroData;
 use crate::models::datetime::DateTimeData;
-use crate::models::geo::GeoPosition;
 use crate::routes::AppRoute;
 use crate::storage::HoroStorage;
 
@@ -24,66 +25,6 @@ stylance::import_crate_style!(
     form,
     "src/shared/form.module.css"
 );
-
-/// 表单状态（保存在 Store 中：字段级细粒度响应，改一个字段不会惊扰其他字段的绑定）。
-#[derive(Clone, Store)]
-pub(crate) struct FormState {
-    /// 档案 ID（随缓存数据往返，表单不编辑）
-    pub id: u32,
-    pub name: String,
-    pub sex: bool,
-    pub year: i32,
-    pub month: u8,
-    pub day: u8,
-    pub hour: u8,
-    pub minute: u8,
-    pub second: u8,
-    pub tz: f64,
-    pub st: bool,
-    /// 地点名称（随缓存数据往返，由地点选择功能写入）
-    pub geo_name: String,
-    pub long: f64,
-    pub lat: f64,
-    pub house: HouseName,
-}
-
-impl From<HoroData> for FormState {
-    fn from(r: HoroData) -> Self {
-        FormState {
-            id: r.id,
-            name: r.name,
-            sex: r.sex,
-            year: r.date.year,
-            month: r.date.month,
-            day: r.date.day,
-            hour: r.date.hour,
-            minute: r.date.minute,
-            second: r.date.second,
-            tz: r.date.tz,
-            st: r.date.st,
-            geo_name: r.geo_name,
-            long: r.geo.long,
-            lat: r.geo.lat,
-            house: r.house,
-        }
-    }
-}
-
-impl FormState {
-    /// 汇总日期时间字段（提交与夏令时提示共用）。
-    fn date(&self) -> DateTimeData {
-        DateTimeData {
-            year: self.year,
-            month: self.month,
-            day: self.day,
-            hour: self.hour,
-            minute: self.minute,
-            second: self.second,
-            tz: self.tz,
-            st: self.st,
-        }
-    }
-}
 
 #[component]
 pub fn Input(mode: ChartMode) -> impl IntoView {
@@ -139,18 +80,7 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
             err.set("经纬度超出有效范围".into());
             return;
         }
-        let horo = HoroData {
-            id: s.id,
-            date: s.date(),
-            geo_name: s.geo_name.clone(),
-            geo: GeoPosition {
-                long: s.long,
-                lat: s.lat,
-            },
-            house: s.house,
-            name: s.name.clone(),
-            sex: s.sex,
-        };
+        let horo = HoroData::from(&*s);
         // 写回本地缓存（对应原版 getHoro）；结果页据此取数并请求后台
         match mode {
             ChartMode::Event => storage.set_event_data(horo),

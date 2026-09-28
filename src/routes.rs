@@ -20,6 +20,8 @@ pub enum AppRoute {
     Clean,
     /// 行星力量表页。
     Power,
+    /// 多窗口星盘工作台页。
+    Workbench,
 }
 
 impl AppRoute {
@@ -34,6 +36,7 @@ impl AppRoute {
             AppRoute::User => "/user",
             AppRoute::Clean => "/clean",
             AppRoute::Power => "/power",
+            AppRoute::Workbench => "/workbench",
         }
     }
 
@@ -105,6 +108,10 @@ mod tests {
         assert!(matches(AppRoute::Clean, "/clean"));
         assert!(!matches(AppRoute::Clean, "/native"));
         assert!(!matches(AppRoute::Home, "/clean"));
+
+        assert!(matches(AppRoute::Workbench, "/workbench"));
+        assert!(!matches(AppRoute::Workbench, "/native"));
+        assert!(!matches(AppRoute::Home, "/workbench"));
     }
 
     #[test]
@@ -118,6 +125,7 @@ mod tests {
             AppRoute::User,
             AppRoute::Clean,
             AppRoute::Power,
+            AppRoute::Workbench,
         ] {
             let mut segments = Vec::new();
             route.generate_path(&mut segments);

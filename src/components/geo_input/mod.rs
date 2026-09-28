@@ -9,7 +9,7 @@ use wasm_bindgen_futures::spawn_local;
 use crate::api::client::get_location_search;
 use crate::api::response::LocationResponse;
 use crate::auth::AuthService;
-use crate::native::input::{FormState, FormStateStoreFields};
+use crate::components::{FormState, FormStateStoreFields};
 
 // 作用域样式：src/components/geo_input/geo_input.module.css
 stylance::import_crate_style!(style, "src/components/geo_input/geo_input.module.css");

@@ -1,7 +1,7 @@
 //! 应用外壳：响应式布局、顶部应用栏与路由。
 use leptos::prelude::*;
 use leptos_router::components::{Route, Router, Routes};
-use leptos_router::hooks::use_navigate;
+use leptos_router::hooks::{use_location, use_navigate};
 use leptos_router::NavigateOptions;
 
 use crate::auth::AuthService;
@@ -12,6 +12,7 @@ use crate::power;
 use crate::routes::AppRoute;
 use crate::storage::HoroStorage;
 use crate::user;
+use crate::workbench;
 
 // 作用域样式：src/app.module.css -> 类名形如 `app-shell-a1b2c3d`
 stylance::import_crate_style!(style, "src/app.module.css");
@@ -37,7 +38,7 @@ pub fn App() -> impl IntoView {
                     <UserEntry/>
                 </header>
 
-                <main class=style::app_main>
+                <MainShell>
                     <Routes fallback=move || view! { <div class=feedback::error>"页面不存在"</div> }>
                         <Route path=AppRoute::Home view=move || view! { <Home/> }/>
                         <Route path=AppRoute::Native view=move || view! { <native::Input mode=native::ChartMode::Native/> }/>
@@ -47,10 +48,27 @@ pub fn App() -> impl IntoView {
                         <Route path=AppRoute::User view=move || view! { <user::User/> }/>
                         <Route path=AppRoute::Clean view=move || view! { <clean::Clean/> }/>
                         <Route path=AppRoute::Power view=move || view! { <power::Power/> }/>
+                        <Route path=AppRoute::Workbench view=move || view! { <workbench::Workbench/> }/>
                     </Routes>
-                </main>
+                </MainShell>
             </div>
         </Router>
+    }
+}
+
+/// 页面主容器：工作台等全幅页面切换为不限宽布局，其余页面保持限宽居中。
+/// 必须是 Router 内的子组件：`use_location` 需在渲染期的 Router 上下文中调用。
+#[component]
+fn MainShell(children: Children) -> impl IntoView {
+    let location = use_location();
+    let is_wide = Memo::new(move |_| {
+        location.pathname.get() == AppRoute::Workbench.path()
+    });
+
+    view! {
+        <main class=move || if is_wide.get() { style::app_main_wide } else { style::app_main }>
+            {children()}
+        </main>
     }
 }
 

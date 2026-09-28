@@ -1,0 +1,211 @@
+/*!
+ * 工作台窗口框架：浮动卡片、标题栏、控制按钮、8 向缩放手柄。
+ * 颜色 / 圆角 / 阴影取全局 CSS 变量，与项目设计语言一致。
+ */
+
+.frame {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 320px;
+  min-height: 360px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(31, 36, 48, 0.12);
+  overflow: hidden;
+  /* 拖拽 / 缩放期间避免选中文本 */
+  user-select: none;
+  transition: box-shadow 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
+}
+
+/* 非激活窗口：弱化阴影与透明度 */
+.frame:not(.active) {
+  opacity: 0.88;
+  box-shadow: 0 4px 12px rgba(31, 36, 48, 0.08);
+}
+
+/* 激活窗口：金色描边 + 加深投影 */
+.frame.active {
+  border-color: rgba(184, 134, 11, 0.55);
+  box-shadow: 0 14px 36px rgba(31, 36, 48, 0.2);
+}
+
+/* 激活窗口标题栏：同 input 侧栏「本命」按钮 hover 的金色渐变 */
+.frame.active .title-bar {
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  border-bottom-color: rgba(184, 134, 11, 0.7);
+}
+
+/* 激活窗口标题文字：金底改用白字，与按钮 hover 一致 */
+.frame.active .title-text {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* 最小化 / 隐藏：移出画面但保留组件状态（请求结果不丢失） */
+.frame.hidden {
+  display: none;
+}
+
+/* 最大化：铺满工作区 */
+.frame.maximized {
+  border-radius: 0;
+  border: none;
+}
+
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 38px;
+  padding: 0 6px 0 14px;
+  flex: 0 0 auto;
+  background: linear-gradient(180deg, rgba(79, 91, 213, 0.07), transparent);
+  border-bottom: 1px solid var(--line);
+  cursor: grab;
+}
+
+.title-bar:active {
+  cursor: grabbing;
+}
+
+.frame.maximized .title-bar {
+  cursor: default;
+}
+
+.title-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-0);
+  letter-spacing: 0.3px;
+}
+
+.title-buttons {
+  display: inline-flex;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.win-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-1);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.win-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.win-btn:hover {
+  background: rgba(79, 91, 213, 0.12);
+  color: var(--indigo);
+}
+
+.win-btn.close-btn:hover {
+  background: rgba(214, 59, 59, 0.14);
+  color: var(--red);
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  user-select: text;
+}
+
+/* —— 8 向缩放手柄 —— */
+.handle-n,
+.handle-s,
+.handle-e,
+.handle-w,
+.handle-nw,
+.handle-ne,
+.handle-sw,
+.handle-se {
+  position: absolute;
+  z-index: 5;
+  touch-action: none;
+}
+
+
+/* 四边：6px 触发带 */
+.handle-n {
+  top: -3px;
+  left: 8px;
+  right: 8px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.handle-s {
+  bottom: -3px;
+  left: 8px;
+  right: 8px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.handle-w {
+  left: -3px;
+  top: 8px;
+  bottom: 8px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.handle-e {
+  right: -3px;
+  top: 8px;
+  bottom: 8px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+/* 四角：12px 触发区 */
+.handle-nw {
+  top: -4px;
+  left: -4px;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}
+
+.handle-ne {
+  top: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+}
+
+.handle-sw {
+  bottom: -4px;
+  left: -4px;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+}
+
+.handle-se {
+  bottom: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}

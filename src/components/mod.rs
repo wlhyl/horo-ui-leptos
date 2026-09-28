@@ -4,6 +4,7 @@ mod aspect_grid;
 mod chart_wheel;
 mod datetime_input;
 mod detail;
+mod form_state;
 mod geo_input;
 mod house_select;
 
@@ -15,3 +16,5 @@ pub use datetime_input::DateTimeInput;
 pub use detail::Detail;
 pub use geo_input::GeoInput;
 pub use house_select::HouseSelect;
+// FormState 仅 crate 内可见（pub(crate) 类型，无法 pub 再导出）
+pub(crate) use form_state::{FormState, FormStateStoreFields};

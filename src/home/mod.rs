@@ -37,10 +37,28 @@ pub fn Home() -> impl IntoView {
             nav(AppRoute::Power.path(), NavigateOptions::default());
         }
     };
+    let go_workbench = {
+        let nav = nav.clone();
+        move |_| {
+            nav(AppRoute::Workbench.path(), NavigateOptions::default());
+        }
+    };
 
     view! {
         <div class=style::home>
             <div class=style::home_grid>
+                <button class=style::home_card on:click=go_workbench>
+                    <div class=style::home_icon>
+                        // 多窗口网格（工作台）
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linejoin="round">
+                            <rect x="3" y="3" width="8" height="12" rx="1.5"/>
+                            <rect x="13" y="7" width="8" height="12" rx="1.5"/>
+                        </svg>
+                    </div>
+                    <div class=style::home_name>"工作台"</div>
+                    <div class=style::home_desc>"多窗口星盘对比"</div>
+                </button>
                 <button class=style::home_card on:click=go_native>
                     <div class=style::home_icon>
                         // 五角星轮廓，同 horo-ui 本命入口的 star-outline 图案

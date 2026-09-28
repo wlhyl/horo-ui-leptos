@@ -14,6 +14,7 @@ mod render;
 mod routes;
 mod storage;
 mod user;
+mod workbench;
 
 use leptos::prelude::mount_to_body;
 
