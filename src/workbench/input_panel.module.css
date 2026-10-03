@@ -14,6 +14,9 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  /* 尺寸容器：表单字段的单列/两列布局跟随面板实际宽度而非视口宽度
+     （侧栏可拖 280px~50vw，与视口断点无关），见 shared/form.module.css */
+  container-type: inline-size;
 }
 
 .section {
@@ -23,6 +26,9 @@
   border-radius: 14px;
   background: var(--bg);
   overflow: hidden;
+  /* 禁止 flex 收缩：面板（overflow-y:auto）内容超高时应整体滚动，
+     而不是把折叠分段压扁裁掉 —— overflow:hidden 会让 min-height:auto 归零 */
+  flex: none;
 }
 
 .section-header {

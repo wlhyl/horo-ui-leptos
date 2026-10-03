@@ -34,9 +34,10 @@
   opacity: 0.6;
 }
 
-/* 搜索结果列表：地名字段的控件列（第 2 列）下方，与输入框左对齐 */
+/* 搜索结果列表：单列字段下跨全宽；两列字段（宽视口/宽面板）落在控件列
+   （第 2 列）下方，与输入框左对齐 */
 .results {
-  grid-column: 2;
+  grid-column: 1 / -1;
   max-height: 240px;
   overflow-y: auto;
   border: 1px solid var(--line-strong);
@@ -64,8 +65,16 @@
   background: rgba(184, 134, 11, 0.08);
 }
 
-/* 窄屏下 form.field 的标签独占一行（单列），结果列表需跨全宽 */
-@media (max-width: 759px) {
+/* 宽视口两列字段：结果列表对齐控件列（无容器页面按视口回退判断） */
+@media (min-width: 760px) {
+  .results {
+    grid-column: 2;
+  }
+}
+
+/* 工作台面板（inline-size 容器，见 input_panel.module.css）内容宽 <450px 时
+   form.field 压回单列，结果列表跨全宽；排在 @media 之后以赢得级联 */
+@container (width < 450px) {
   .results {
     grid-column: 1 / -1;
   }

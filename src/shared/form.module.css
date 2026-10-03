@@ -3,17 +3,48 @@
  * 由 input 页面及其子组件（datetime_input / geo_input / house_select）共同引用。
  */
 
+/* 基础 = 单列：标签独占一行（左对齐），控件拿全宽 —— 窄容器里 120px 标签列
+   会把三个数字输入挤到几十像素宽，「1900」显示不下 */
 .field {
   display: grid;
-  grid-template-columns: 96px 1fr;
+  grid-template-columns: 1fr;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 }
 
 .field > label {
   font-size: 14px;
   color: var(--text-1);
-  text-align: right;
+  text-align: left;
+}
+
+/* 宽视口恢复两列（input / user / clean 等无容器页面按视口回退判断，
+   行为与旧的 760px 断点一致） */
+@media (min-width: 760px) {
+  .field {
+    grid-template-columns: 120px 1fr;
+    gap: 12px;
+  }
+
+  .field > label {
+    text-align: right;
+  }
+}
+
+/* 工作台输入面板是 inline-size 容器（见 input_panel.module.css）：
+   字段布局应跟随面板实际宽度而非视口 —— 侧栏可拖 280px~50vw，
+   桌面视口恒 ≥760px 时旧媒体查询会在 ~268px 面板里强行套两列。
+   面板内容宽 <450px 压回单列；必须排在 @media 之后以赢得级联，
+   无容器祖先的页面本条不匹配（回退按小视口判断，宽视口不命中）。 */
+@container (width < 450px) {
+  .field {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .field > label {
+    text-align: left;
+  }
 }
 
 .control {
@@ -126,23 +157,4 @@
   cursor: default;
   opacity: 0.6;
   transform: none;
-}
-
-@media (min-width: 760px) {
-  .field {
-    grid-template-columns: 120px 1fr;
-  }
-}
-
-/* 窄屏：标签独占一行（左对齐），控件列拿到全宽 —— 320px 屏上
-   96px 标签列会把三个数字输入挤到各 ~40px，「1900」显示不下 */
-@media (max-width: 759px) {
-  .field {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-
-  .field > label {
-    text-align: left;
-  }
 }
