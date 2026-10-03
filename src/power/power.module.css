@@ -20,8 +20,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -80,7 +80,7 @@
 .segment_btn,
 .segment_btn_active {
   flex: 1;
-  padding: 9px 0;
+  padding: 12px 0;
   border: 1px solid transparent;
   border-radius: 9px;
   background: transparent;
@@ -138,6 +138,12 @@
 }
 
 .th_zodiac {
+  /* 横向滚动时星座表头列冻结在左侧（底色取 thead 渐变的不透明近似值，
+     半透明底会透出滚过的列） */
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, #edeffb, #f9f5ec);
   width: 48px;
   text-align: center;
 }
@@ -158,22 +164,28 @@
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.table tbody tr:hover {
+.table tbody tr:hover,
+.table tbody tr:active {
   background: rgba(184, 134, 11, 0.18);
 }
 
 /* 行左侧高亮强调条 */
-.table tbody tr:hover td:first-child {
+.table tbody tr:hover td:first-child,
+.table tbody tr:active td:first-child {
   box-shadow: inset 3px 0 0 var(--gold);
 }
 
-/* 让星座列在 hover 时也随之点亮（原本有独立底色会盖住行高亮）*/
-.table tbody tr:hover .td_zodiac {
-  background: transparent;
+/* 星座列冻结在左侧：底色必须不透明，hover / 按压时随行点亮 */
+.td_zodiac {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fbf9f3;
 }
 
-.td_zodiac {
-  background: rgba(184, 134, 11, 0.05);
+.table tbody tr:hover .td_zodiac,
+.table tbody tr:active .td_zodiac {
+  background: #f2e9d3;
 }
 
 /* 占星符号强制按文字字形渲染，避免被当彩色 emoji */
@@ -185,7 +197,8 @@
   transition: transform 0.15s ease;
 }
 
-.table tbody tr:hover .glyph {
+.table tbody tr:hover .glyph,
+.table tbody tr:active .glyph {
   transform: scale(1.22);
   text-shadow: 0 0 8px rgba(184, 134, 11, 0.5);
 }

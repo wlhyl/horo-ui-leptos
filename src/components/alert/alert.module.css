@@ -11,6 +11,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
+  overscroll-behavior: contain;
   background: rgba(15, 20, 32, 0.45);
   animation: fade 0.18s ease both;
 }

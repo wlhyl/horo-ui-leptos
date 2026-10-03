@@ -39,8 +39,8 @@
 
 .toggle input {
   appearance: none;
-  width: 44px;
-  height: 24px;
+  width: 48px;
+  height: 28px;
   border-radius: 999px;
   background: rgba(20, 30, 50, 0.18);
   position: relative;
@@ -53,8 +53,8 @@
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #fff;
   transition: transform 0.15s ease;
@@ -74,7 +74,7 @@
 }
 
 .radio-group label {
-  padding: 9px 18px;
+  padding: 11px 18px;
   border-radius: 12px;
   border: 1px solid var(--line-strong);
   background: var(--surface);
@@ -131,5 +131,18 @@
 @media (min-width: 760px) {
   .field {
     grid-template-columns: 120px 1fr;
+  }
+}
+
+/* 窄屏：标签独占一行（左对齐），控件列拿到全宽 —— 320px 屏上
+   96px 标签列会把三个数字输入挤到各 ~40px，「1900」显示不下 */
+@media (max-width: 759px) {
+  .field {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .field > label {
+    text-align: left;
   }
 }

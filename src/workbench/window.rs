@@ -181,19 +181,17 @@ impl WindowMgr {
     /// `work_area` 为工作区尺寸（宽高，原点 0,0）。
     pub fn open(&self, chart_type: ChartType, snapshot: HoroData, work_area: WindowRect) {
         let offset = (self.cascade_index.get_untracked() % CASCADE_STEPS) as f64 * CASCADE_OFFSET;
-        let mut rect = WindowRect::new(
+        // 默认尺寸按工作区收紧（宽高都裁进工作区，而非只贴回 x/y）
+        let fitted = WindowRect::new(
             MARGIN.max(offset),
             MARGIN.max(offset),
-            DEFAULT_WIDTH,
-            DEFAULT_HEIGHT,
+            DEFAULT_WIDTH.min((work_area.width - 2.0 * MARGIN).max(MIN_WIDTH)),
+            DEFAULT_HEIGHT.min((work_area.height - 2.0 * MARGIN).max(MIN_HEIGHT)),
         );
-        // 超出工作区时贴边收回
-        if rect.x + rect.width > work_area.width {
-            rect.x = MARGIN.max(work_area.width - rect.width - MARGIN);
-        }
-        if rect.y + rect.height > work_area.height {
-            rect.y = MARGIN.max(work_area.height - rect.height - MARGIN);
-        }
+        // 窄工作区（手机竖屏 / 侧栏挤压）放不下浮动窗口时直接最大化打开：
+        // 否则默认 460px 宽会把标题栏右侧按钮挤出屏幕，窗口无法关闭。
+        // prev_rect 存放下限尺寸的「还原矩形」，还原 / 恢复时回到可用大小。
+        let area_too_narrow = work_area.width < DEFAULT_WIDTH + 2.0 * MARGIN;
 
         let id = self.next_id();
         let z = self.next_z();
@@ -207,10 +205,18 @@ impl WindowMgr {
                 id,
                 title,
                 chart_type,
-                state: WindowState::Normal,
-                rect,
+                state: if area_too_narrow {
+                    WindowState::Maximized
+                } else {
+                    WindowState::Normal
+                },
+                rect: if area_too_narrow {
+                    WindowRect::new(0.0, 0.0, work_area.width, work_area.height)
+                } else {
+                    fitted
+                },
                 z_index: z,
-                prev_rect: None,
+                prev_rect: area_too_narrow.then_some(fitted),
                 snapshot,
             })
         });

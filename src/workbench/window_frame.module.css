@@ -59,12 +59,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  height: 38px;
+  height: 42px;
   padding: 0 6px 0 14px;
   flex: 0 0 auto;
   background: linear-gradient(180deg, rgba(79, 91, 213, 0.07), transparent);
   border-bottom: 1px solid var(--line);
   cursor: grab;
+  /* 触屏拖动窗口：禁掉浏览器把手势解释成滚动 / 刷新 */
+  touch-action: none;
 }
 
 .title-bar:active {
@@ -89,7 +91,7 @@
 
 .title-buttons {
   display: inline-flex;
-  gap: 2px;
+  gap: 4px;
   flex: 0 0 auto;
 }
 
@@ -97,8 +99,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 28px;
+  width: 34px;
+  height: 32px;
   padding: 0;
   border: none;
   border-radius: 8px;
@@ -208,4 +210,61 @@
   width: 14px;
   height: 14px;
   cursor: nwse-resize;
+}
+
+/* 触屏：手指捏不住 6px 触发带，统一放宽 */
+@media (pointer: coarse) {
+  .handle-n,
+  .handle-s {
+    height: 14px;
+  }
+
+  .handle-n {
+    top: -7px;
+  }
+
+  .handle-s {
+    bottom: -7px;
+  }
+
+  .handle-w,
+  .handle-e {
+    width: 14px;
+  }
+
+  .handle-w {
+    left: -7px;
+  }
+
+  .handle-e {
+    right: -7px;
+  }
+
+  .handle-nw,
+  .handle-ne,
+  .handle-sw,
+  .handle-se {
+    width: 24px;
+    height: 24px;
+  }
+
+  .handle-nw,
+  .handle-sw {
+    left: -12px;
+  }
+
+  .handle-ne,
+  .handle-se {
+    right: -12px;
+  }
+
+  .handle-nw,
+  .handle-ne {
+    top: -12px;
+  }
+
+  .handle-sw,
+  .handle-se {
+    bottom: -12px;
+  }
 }

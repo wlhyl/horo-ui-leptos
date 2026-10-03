@@ -159,18 +159,20 @@ pub fn Temperament(horoscope: Horoscope) -> impl IntoView {
                 <p class=style::temperament_error>{move || error.get()}</p>
             </Show>
             <Show when=move || !contributors.get().is_empty() fallback=|| ()>
-                <table class=style::temperament_table>
-                    <thead>
-                        <tr>
-                            <th>"项目"</th>
-                            <th>"来源"</th>
-                            <th>"热"</th>
-                            <th>"冷"</th>
-                            <th>"干"</th>
-                            <th>"湿"</th>
-                            <th></th>
-                        </tr>
-                    </thead>
+                // 窄屏 7 列放不下：包一层横向滚动，避免列被挤压到行高爆炸
+                <div class=style::temperament_scroll>
+                    <table class=style::temperament_table>
+                        <thead>
+                            <tr>
+                                <th>"项目"</th>
+                                <th>"来源"</th>
+                                <th>"热"</th>
+                                <th>"冷"</th>
+                                <th>"干"</th>
+                                <th>"湿"</th>
+                                <th></th>
+                            </tr>
+                        </thead>
                     <tbody>
                         <For each=move || contributors.get() key=|c| c.id.clone() let(c)>
                             <tr>
@@ -204,11 +206,14 @@ pub fn Temperament(horoscope: Horoscope) -> impl IntoView {
                                         };
                                         view! {
                                             <td class=style::quality_cell>
-                                                <input
-                                                    type="checkbox"
-                                                    prop:checked=checked
-                                                    on:change=on_change
-                                                />
+                                                // label 撑满单元格：整个格子都可点选
+                                                <label>
+                                                    <input
+                                                        type="checkbox"
+                                                        prop:checked=checked
+                                                        on:change=on_change
+                                                    />
+                                                </label>
                                             </td>
                                         }
                                     })
@@ -227,8 +232,9 @@ pub fn Temperament(horoscope: Horoscope) -> impl IntoView {
                                 </td>
                             </tr>
                         </For>
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
 
                 <div class=style::add_row>
                     <select

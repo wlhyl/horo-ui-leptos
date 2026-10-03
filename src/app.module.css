@@ -1,5 +1,12 @@
 /*! 应用外壳：响应式布局与顶部应用栏。 */
 
+/* 应用栏总高（含上下内边距与边框，border-box）：
+   内容高 44px（用户入口的最小点击高度）+ 底部内边距 14px + 边框 1px。
+   顶栏与工作台（100dvh 减法）共用，改动栏内尺寸时需同步。 */
+:root {
+  --app-bar-height: calc(max(14px, env(safe-area-inset-top)) + 59px);
+}
+
 .app-shell {
   display: flex;
   flex-direction: column;
@@ -14,6 +21,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  height: var(--app-bar-height);
   padding: 14px 18px;
   padding-top: max(14px, env(safe-area-inset-top));
   /* 去掉 backdrop-filter: blur（缩放时极耗性能），改用实色半透明 */
@@ -55,7 +63,9 @@
 .user-entry {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  min-height: 44px;
   padding: 7px 12px;
   font-size: 14px;
   font-family: inherit;
@@ -88,19 +98,23 @@
   width: 100%;
   max-width: 980px;
   margin: 0 auto;
-  padding: 18px 16px 28px;
+  /* 底部留出全面屏 home-indicator 的安全区，避免压住最后的内容 */
+  padding: 18px 16px calc(28px + env(safe-area-inset-bottom));
 }
 
 @media (min-width: 760px) {
   .app-main {
-    padding: 28px 24px 36px;
+    padding: 28px 24px calc(36px + env(safe-area-inset-bottom));
   }
 }
 
-/* 工作台等全幅页面：不限宽、无内边距，页面自管布局 */
+/* 工作台等全幅页面：不限宽、无内边距，页面自管布局。
+   显式定高（视口减应用栏）：父级 app-shell 只有 min-height，flex-basis 0%
+   对不定高容器会按内容解析，flex:1 链条无法把高度收敛到视口 */
 .app-main-wide {
-  flex: 1;
+  flex: 0 0 auto;
   width: 100%;
+  height: calc(100dvh - var(--app-bar-height));
   display: flex;
   flex-direction: column;
   min-height: 0;

@@ -7,8 +7,7 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  /* 占满视口剩余高度（app-main-wide 为 flex 列容器） */
-  height: calc(100dvh - 59px);
+  /* 高度由 app-main-wide 显式定高（视口减应用栏变量，含安全区）后 flex 撑满 */
 }
 
 /* —— 工具条 —— */
@@ -26,7 +25,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
+  padding: 10px 12px;
   font-size: 14px;
   font-weight: 500;
   font-family: inherit;
@@ -64,7 +63,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
+  padding: 10px 12px;
   font-size: 14px;
   font-weight: 500;
   font-family: inherit;
@@ -101,7 +100,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
+  padding: 10px 12px;
   font-size: 14px;
   font-weight: 500;
   font-family: inherit;
@@ -137,7 +136,7 @@
   right: 0;
   z-index: 500;
   min-width: 280px;
-  max-height: 60vh;
+  max-height: 60dvh;
   display: flex;
   flex-direction: column;
   background: var(--surface);
@@ -172,17 +171,21 @@
 
 .list-close {
   display: inline-flex;
-  padding: 4px;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   background: transparent;
   color: var(--text-1);
   cursor: pointer;
 }
 
 .list-close svg {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
 }
 
 .list-close:hover {
@@ -233,9 +236,13 @@
 
 .item-close {
   display: inline-flex;
-  padding: 4px;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   background: transparent;
   color: var(--text-1);
   cursor: pointer;
@@ -243,8 +250,8 @@
 }
 
 .item-close svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
 }
 
 .item-close:hover {
@@ -285,6 +292,12 @@
   background: rgba(79, 91, 213, 0.35);
 }
 
+/* 抽屉蒙层：桌面端不渲染（display:none），窄屏侧栏覆盖在工作区上层时显示，
+   点击空白处关闭抽屉（事件绑定在 Rust 侧） */
+.sidebar-scrim {
+  display: none;
+}
+
 /* 折叠后的展开按钮：贴工作区左缘 */
 .sidebar-toggle {
   position: absolute;
@@ -292,10 +305,10 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 20;
-  width: 22px;
-  height: 56px;
+  width: 26px;
+  height: 64px;
   padding: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-family: inherit;
   color: var(--text-1);
   background: var(--surface);
@@ -348,4 +361,79 @@
   margin: 0;
   font-size: 15px;
   letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+ * 窄屏（<760px）：侧栏从「挤压工作区」降级为覆盖式抽屉，
+ * 工作区保持全宽（窗口在窄工作区会自动最大化，见 window.rs）。
+ * ========================================================================== */
+@media (max-width: 759px) {
+  .toolbar {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  /* 「首页」只留图标（title 提示仍在），给标题与右侧按钮让位 */
+  .back-btn {
+    font-size: 0;
+    gap: 0;
+    padding: 10px;
+  }
+
+  .panel-btn,
+  .list-btn {
+    padding: 10px;
+  }
+
+  /* 侧栏变为覆盖式抽屉：宽度以内联样式为主，这里只兜底限宽 */
+  .sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 30;
+    width: min(86vw, 340px) !important;
+    padding: 12px;
+    background: var(--bg);
+    border-right: 1px solid var(--line);
+    box-shadow: 12px 0 32px rgba(31, 36, 48, 0.18);
+    overflow-y: auto;
+    animation: sidebar-in 0.18s ease;
+  }
+
+  .sidebar-scrim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 25;
+    background: rgba(15, 20, 32, 0.4);
+    animation: fade-in 0.18s ease;
+  }
+
+  /* 抽屉展开时工作区左缘的展开按钮被侧栏盖住即可，收起后仍可用 */
+
+  .empty-state p {
+    padding: 0 24px;
+    text-align: center;
+  }
+}
+
+@keyframes sidebar-in {
+  from {
+    transform: translateX(-24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

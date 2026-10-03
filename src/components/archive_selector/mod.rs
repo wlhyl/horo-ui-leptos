@@ -59,6 +59,18 @@ pub fn ArchiveSelector(state: Store<FormState>) -> impl IntoView {
     // 取代「把 loading 当并发锁」的做法，避免搜索在途时重开弹框等场景下旧响应覆盖新列表。
     let request_generation = RwSignal::new(0u64);
 
+    // 模态打开期间锁定背景滚动（触屏上背景页会跟着被拖动）
+    Effect::new(move || {
+        let Some(body) = leptos::prelude::document().body() else {
+            return;
+        };
+        if open.get() {
+            let _ = body.style().set_property("overflow", "hidden");
+        } else {
+            let _ = body.style().remove_property("overflow");
+        }
+    });
+
     // 加载一页记录：`search_name` 为 Some 走搜索接口，否则走分页列表；
     // `reset` 为 true 表示用响应整体替换列表（第 0 页），false 为追加到尾部。
     // loading / error 的置位统一在这里处理，调用方只管业务参数；

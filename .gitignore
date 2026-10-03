@@ -17,6 +17,7 @@ CLAUDE.md
 .trae
 .codegraph
 *.bak
+.zcodeignore 
 
 # LLVM 覆盖率产物（instrument-coverage 运行时生成）
 *.profraw

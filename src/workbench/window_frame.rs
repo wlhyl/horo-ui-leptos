@@ -81,8 +81,7 @@ pub fn WindowFrame(
 
     // 拖拽会话与全局监听 handle（handle 存信号：drop 即解绑）
     let drag = RwSignal::new(None::<DragState>);
-    let drag_handles =
-        RwSignal::new(None::<(WindowListenerHandle, WindowListenerHandle)>);
+    let drag_handles = RwSignal::new(None::<Vec<WindowListenerHandle>>);
 
     // 读取工作区尺寸（拖拽开始时一次性快照，mousemove 不触发布局读取）。
     let bounds_now = move || {
@@ -94,8 +93,10 @@ pub fn WindowFrame(
             .unwrap_or_else(|| WindowRect::new(0.0, 0.0, 800.0, 600.0))
     };
 
-    // mousedown 统一入口：记录起点并挂全局 mousemove/mouseup 监听。
-    let start_drag = move |ev: leptos::ev::MouseEvent, resizing: Option<&'static str>| {
+    // pointerdown 统一入口：记录起点并挂全局 pointermove/pointerup 监听。
+    // 用 Pointer Events 一套代码同时覆盖鼠标与触屏（触屏有隐式指针捕获，
+    // 手指移出元素后事件仍冒泡到 window）。
+    let start_drag = move |ev: leptos::ev::PointerEvent, resizing: Option<&'static str>| {
         ev.prevent_default();
         mgr.focus(id);
         let Some(start_rect) = rect.get_untracked() else {
@@ -111,7 +112,7 @@ pub fn WindowFrame(
 
         let on_move = {
             let mgr = mgr;
-            move |ev: leptos::ev::MouseEvent| {
+            move |ev: leptos::ev::PointerEvent| {
                 if let Some(d) = drag.get_untracked() {
                     let new_rect = d.apply(
                         ev.client_x() as f64 - d.start_x,
@@ -121,18 +122,20 @@ pub fn WindowFrame(
                 }
             }
         };
-        let on_up = move |_ev: leptos::ev::MouseEvent| {
+        let on_up = move |_ev: leptos::ev::PointerEvent| {
             drag.set(None);
             // drop handle → 解绑全局监听
             drag_handles.set(None);
         };
-        let h_move = window_event_listener(leptos::ev::mousemove, on_move);
-        let h_up = window_event_listener(leptos::ev::mouseup, on_up);
-        drag_handles.set(Some((h_move, h_up)));
+        let h_move = window_event_listener(leptos::ev::pointermove, on_move.clone());
+        let h_up = window_event_listener(leptos::ev::pointerup, on_up.clone());
+        // 触屏手势被系统 / 浏览器接管（来电、下拉刷新等）时结束拖拽
+        let h_cancel = window_event_listener(leptos::ev::pointercancel, on_up);
+        drag_handles.set(Some(vec![h_move, h_up, h_cancel]));
     };
 
     // 标题栏按下：按钮已 stop_propagation，到这里即开始移动
-    let on_title_down = move |ev: leptos::ev::MouseEvent| {
+    let on_title_down = move |ev: leptos::ev::PointerEvent| {
         if is_maximized.get_untracked() {
             return;
         }
@@ -141,7 +144,7 @@ pub fn WindowFrame(
 
     // resize handle 按下（8 方向）
     let on_resize = move |dir: &'static str| {
-        move |ev: leptos::ev::MouseEvent| {
+        move |ev: leptos::ev::PointerEvent| {
             if is_maximized.get_untracked() {
                 return;
             }
@@ -151,7 +154,7 @@ pub fn WindowFrame(
     };
 
     // 窗口任意处按下即聚焦
-    let on_frame_down = move |_ev: leptos::ev::MouseEvent| {
+    let on_frame_down = move |_ev: leptos::ev::PointerEvent| {
         mgr.focus(id);
     };
 
@@ -175,7 +178,7 @@ pub fn WindowFrame(
     };
 
     // 按钮按下不触发拖拽
-    let swallow = move |ev: leptos::ev::MouseEvent| {
+    let swallow = move |ev: leptos::ev::PointerEvent| {
         ev.stop_propagation();
     };
 
@@ -205,21 +208,21 @@ pub fn WindowFrame(
                     r.x, r.y, r.width, r.height, z
                 )
             }
-            on:mousedown=on_frame_down
+            on:pointerdown=on_frame_down
         >
-            <div class=style::title_bar on:mousedown=on_title_down>
+            <div class=style::title_bar on:pointerdown=on_title_down>
                 <span class=style::title_text title=window.title.clone()>
                     {window.title.clone()}
                 </span>
-                <div class=style::title_buttons on:mousedown=swallow>
-                    <button class=style::win_btn on:mousedown=swallow on:click=on_minimize title="最小化">
+                <div class=style::title_buttons on:pointerdown=swallow>
+                    <button class=style::win_btn on:click=on_minimize title="最小化">
                         // 减号
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round">
                             <path d="M5 12h14"/>
                         </svg>
                     </button>
-                    <button class=style::win_btn on:mousedown=swallow on:click=on_hide title="隐藏">
+                    <button class=style::win_btn on:click=on_hide title="隐藏">
                         // 眼睛斜线（隐藏）
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -229,7 +232,7 @@ pub fn WindowFrame(
                             <path d="M1 1l22 22"/>
                         </svg>
                     </button>
-                    <button class=style::win_btn on:mousedown=swallow on:click=on_toggle_max title="最大化/还原">
+                    <button class=style::win_btn on:click=on_toggle_max title="最大化/还原">
                         // 最大化/还原图标（随状态切换）
                         {move || if is_maximized.get() {
                             view! {
@@ -251,7 +254,7 @@ pub fn WindowFrame(
                         }}
                     </button>
                     <button class=move || format!("{} {}", style::win_btn, style::close_btn)
-                        on:mousedown=swallow on:click=on_close title="关闭">
+                        on:click=on_close title="关闭">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round">
                             <path d="M18 6L6 18M6 6l12 12"/>
@@ -270,14 +273,14 @@ pub fn WindowFrame(
             // 缩放手柄（最大化时隐藏）
             <Show when=move || !is_maximized.get()>
                 {view! {
-                    <div class=style::handle_n on:mousedown=on_resize("n")></div>
-                    <div class=style::handle_s on:mousedown=on_resize("s")></div>
-                    <div class=style::handle_w on:mousedown=on_resize("w")></div>
-                    <div class=style::handle_e on:mousedown=on_resize("e")></div>
-                    <div class=style::handle_nw on:mousedown=on_resize("nw")></div>
-                    <div class=style::handle_ne on:mousedown=on_resize("ne")></div>
-                    <div class=style::handle_sw on:mousedown=on_resize("sw")></div>
-                    <div class=style::handle_se on:mousedown=on_resize("se")></div>
+                    <div class=style::handle_n on:pointerdown=on_resize("n")></div>
+                    <div class=style::handle_s on:pointerdown=on_resize("s")></div>
+                    <div class=style::handle_w on:pointerdown=on_resize("w")></div>
+                    <div class=style::handle_e on:pointerdown=on_resize("e")></div>
+                    <div class=style::handle_nw on:pointerdown=on_resize("nw")></div>
+                    <div class=style::handle_ne on:pointerdown=on_resize("ne")></div>
+                    <div class=style::handle_sw on:pointerdown=on_resize("sw")></div>
+                    <div class=style::handle_se on:pointerdown=on_resize("se")></div>
                 }}
             </Show>
         </div>

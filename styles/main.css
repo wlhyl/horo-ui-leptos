@@ -36,6 +36,13 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 触屏连点按钮不触发双击缩放（300ms 延迟的遗留问题一并规避） */
+button,
+select,
+label {
+  touch-action: manipulation;
+}
+
 /* 关键：html 与 body 同色，缩放时超出布局的边缘不再“白→黑”闪一下 */
 html,
 body {
@@ -66,7 +73,8 @@ input[type="number"],
 select {
   width: 100%;
   padding: 11px 12px;
-  font-size: 15px;
+  /* ≥16px：iOS Safari 对更小字号的输入框聚焦时会自动放大页面且不复位 */
+  font-size: 16px;
   font-family: inherit;
   color: var(--text-0);
   background: var(--surface);

@@ -43,7 +43,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
+  /* 防止在遮罩上滑动时把背景页一起拖动（iOS 触摸链穿透） */
+  overscroll-behavior: contain;
   background: rgba(15, 20, 32, 0.45);
   animation: fade 0.18s ease both;
 }
@@ -52,7 +54,8 @@
   display: flex;
   flex-direction: column;
   width: min(480px, 100%);
-  max-height: min(70vh, 560px);
+  /* dvh 而非 vh：iOS 地址栏伸缩时 70vh 可能高于可视区，底栏被工具栏遮住 */
+  max-height: min(calc(100dvh - 32px), 560px);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -79,19 +82,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
+  margin: -8px -8px -8px 0;
   color: var(--text-1);
   background: none;
   border: none;
-  border-radius: 9px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .close-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .close-btn:hover {
@@ -142,6 +146,7 @@ input[type="text"].search-input {
   flex: 1;
   min-height: 120px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   border-top: 1px solid var(--line);
   padding: 6px;
   transition: opacity 0.15s ease;

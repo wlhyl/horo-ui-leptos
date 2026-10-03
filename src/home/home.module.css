@@ -56,3 +56,18 @@
   font-size: 12.5px;
   color: var(--text-1);
 }
+
+/* 极窄屏（320-379px）：双列每卡仅 ~146px，描述文字挤成三行，改单列 */
+@media (max-width: 379px) {
+  .home-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-card {
+    padding: 22px 16px;
+  }
+
+  .home-desc {
+    font-size: 13px;
+  }
+}

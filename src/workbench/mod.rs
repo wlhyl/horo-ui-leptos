@@ -74,11 +74,11 @@ pub fn Workbench() -> impl IntoView {
     };
     let toggle_sidebar = move |_| sidebar_collapsed.update(|v| *v = !*v);
 
-    // —— 侧栏拖宽（同窗口拖拽模式：mousedown 挂全局监听，mouseup 解绑）——
+    // —— 侧栏拖宽（同窗口拖拽模式：pointerdown 挂全局监听，pointerup 解绑；
+    // Pointer Events 同时覆盖鼠标与触屏）——
     let sidebar_drag = RwSignal::new(None::<SidebarDrag>);
-    let sidebar_drag_handles =
-        RwSignal::new(None::<(WindowListenerHandle, WindowListenerHandle)>);
-    let on_sidebar_resize_start = move |ev: leptos::ev::MouseEvent| {
+    let sidebar_drag_handles = RwSignal::new(None::<Vec<WindowListenerHandle>>);
+    let on_sidebar_resize_start = move |ev: leptos::ev::PointerEvent| {
         if sidebar_collapsed.get_untracked() {
             return;
         }
@@ -87,7 +87,7 @@ pub fn Workbench() -> impl IntoView {
             start_x: ev.client_x() as f64,
             start_width: sidebar_width.get_untracked(),
         }));
-        let on_move = move |ev: leptos::ev::MouseEvent| {
+        let on_move = move |ev: leptos::ev::PointerEvent| {
             if let Some(d) = sidebar_drag.get_untracked() {
                 // 上限为半屏；极窄视口（< 2 倍最小宽度）下半屏会小于 SIDEBAR_MIN_WIDTH，
                 // 直接 clamp 会因 min > max panic，故下限兜底（此时侧栏固定为最小宽度）。
@@ -102,23 +102,26 @@ pub fn Workbench() -> impl IntoView {
                 sidebar_width.set(w);
             }
         };
-        let on_up = move |_ev: leptos::ev::MouseEvent| {
+        let on_up = move |_ev: leptos::ev::PointerEvent| {
             sidebar_drag.set(None);
             sidebar_drag_handles.set(None);
         };
-        let h_move = window_event_listener(leptos::ev::mousemove, on_move);
-        let h_up = window_event_listener(leptos::ev::mouseup, on_up);
-        sidebar_drag_handles.set(Some((h_move, h_up)));
+        let h_move = window_event_listener(leptos::ev::pointermove, on_move.clone());
+        let h_up = window_event_listener(leptos::ev::pointerup, on_up.clone());
+        // 触屏手势被系统 / 浏览器接管时结束拖拽
+        let h_cancel = window_event_listener(leptos::ev::pointercancel, on_up);
+        sidebar_drag_handles.set(Some(vec![h_move, h_up, h_cancel]));
     };
 
-    // —— 窗口列表下拉：点击外部关闭（打开时挂全局 mousedown）——
+    // —— 窗口列表下拉：点击外部关闭（打开时挂全局 pointerdown；
+    // 触屏对非交互区域的合成 mouse 事件不可靠，pointer 双端稳定）——
     let list_click_handles = RwSignal::new(None::<WindowListenerHandle>);
     let toggle_list = move |ev: leptos::ev::MouseEvent| {
         ev.stop_propagation();
         let opening = !list_open.get_untracked();
         list_open.set(opening);
         if opening {
-            let on_doc_down = move |ev: leptos::ev::MouseEvent| {
+            let on_doc_down = move |ev: leptos::ev::PointerEvent| {
                 let inside = list_wrapper
                     .get_untracked()
                     .zip(ev.target())
@@ -130,7 +133,7 @@ pub fn Workbench() -> impl IntoView {
                     list_click_handles.set(None);
                 }
             };
-            let h = window_event_listener(leptos::ev::mousedown, on_doc_down);
+            let h = window_event_listener(leptos::ev::pointerdown, on_doc_down);
             list_click_handles.set(Some(h));
         } else {
             list_click_handles.set(None);
@@ -260,12 +263,14 @@ pub fn Workbench() -> impl IntoView {
             // —— 主体：侧栏 + 工作区 ——
             <div class=style::body>
                 <Show when=move || !sidebar_collapsed.get()>
+                    // 窄屏抽屉模式的蒙层（桌面端由 CSS 隐藏）：点击关闭抽屉
+                    <div class=style::sidebar_scrim on:click=toggle_sidebar></div>
                     <aside
                         class=style::sidebar
                         style=move || format!("width:{:.0}px", sidebar_width.get())
                     >
                         <InputPanel work_area=work_area/>
-                        <div class=style::sidebar_handle on:mousedown=on_sidebar_resize_start></div>
+                        <div class=style::sidebar_handle on:pointerdown=on_sidebar_resize_start></div>
                     </aside>
                 </Show>
                 <button class=style::sidebar_toggle on:click=toggle_sidebar>

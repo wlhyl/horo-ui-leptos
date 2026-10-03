@@ -63,3 +63,10 @@
 .result:hover {
   background: rgba(184, 134, 11, 0.08);
 }
+
+/* 窄屏下 form.field 的标签独占一行（单列），结果列表需跨全宽 */
+@media (max-width: 759px) {
+  .results {
+    grid-column: 1 / -1;
+  }
+}
