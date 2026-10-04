@@ -12,6 +12,7 @@ mod power;
 mod native;
 mod render;
 mod routes;
+mod shared;
 mod storage;
 mod user;
 mod workbench;

@@ -16,6 +16,7 @@ use crate::api::response::{ChartType, HoroscopeRecord};
 use crate::auth::AuthService;
 use crate::components::AlertDialog;
 use crate::components::FormState;
+use crate::shared::sleep_ms;
 
 // 作用域样式：src/components/archive_selector/archive_selector.module.css
 stylance::import_crate_style!(
@@ -27,16 +28,6 @@ stylance::import_crate_style!(
 const PAGE_SIZE: u64 = 20;
 /// 搜索防抖间隔（毫秒）。
 const SEARCH_DEBOUNCE_MS: i32 = 300;
-
-/// 基于 Promise 的毫秒级休眠（wasm 无标准线程，借浏览器 setTimeout 实现）。
-/// 直接把 Promise 的 resolve 作为定时回调，无需构造额外闭包。
-async fn sleep_ms(ms: i32) {
-    let promise = js_sys::Promise::new(&mut |resolve: js_sys::Function, _| {
-        let _ = web_sys::window()
-            .map(|w| w.set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, ms));
-    });
-    let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
-}
 
 /// 从档案库选择天宫图记录：入口按钮 + 模态选择框。
 #[component]

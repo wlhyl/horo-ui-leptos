@@ -10,6 +10,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* 顶部留白给时间编辑条的悬停气泡：编辑条首行位于滚动容器顶部，
+     其上方的气泡落在内边距区域内才不会被 overflow 裁剪 */
+  padding-top: 36px;
 }
 
 /* SVG 星盘自适应窗口尺寸 */

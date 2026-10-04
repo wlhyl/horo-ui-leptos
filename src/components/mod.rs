@@ -1,6 +1,7 @@
 mod alert;
 mod archive_selector;
 mod aspect_grid;
+mod chart_time_editor;
 mod chart_wheel;
 mod datetime_input;
 mod detail;
@@ -11,6 +12,7 @@ mod house_select;
 pub use alert::AlertDialog;
 pub use archive_selector::ArchiveSelector;
 pub use aspect_grid::AspectGrid;
+pub use chart_time_editor::ChartTimeEditor;
 pub use chart_wheel::ChartWheel;
 pub use datetime_input::DateTimeInput;
 pub use detail::Detail;
