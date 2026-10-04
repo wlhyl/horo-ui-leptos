@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---------- 构建阶段：用 trunk 把 Leptos(WASM) 前端编译成静态资源 ----------
-FROM rust:1.98.1-alpine AS builder
+FROM rust:1.99.0-alpine AS builder
 
 # 基础编译/依赖工具；gcompat 让 trunk 下载的 glibc 预编译二进制(wasm-bindgen/wasm-opt)可在 musl 上运行
 # RUN apk add --no-cache \
