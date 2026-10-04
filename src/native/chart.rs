@@ -157,7 +157,7 @@ pub fn Chart(mode: ChartMode) -> impl IntoView {
                             "详情"
                         </button>
                     </div>
-                    <div>
+                    <div class=style::tab_content>
                         {{
                             let hw = h.clone();
                             let ha = h.clone();

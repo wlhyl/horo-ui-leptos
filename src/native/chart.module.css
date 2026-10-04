@@ -14,23 +14,33 @@
   font-weight: 600;
 }
 
+/* 小巧的分段式标签：轨道随内容收缩，激活段渐变胶囊（配色与主按钮一致） */
 .tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 3px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
 }
 
 .tabs button {
-  flex: 1;
-  padding: 13px 0;
-  font-size: 14px;
+  padding: 6px 18px;
+  font-size: 13px;
   font-family: inherit;
   color: var(--text-1);
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tabs button:hover:not(.active) {
+  color: var(--text-0);
+  background: rgba(20, 30, 50, 0.04);
 }
 
 /* 选中态：由 Rust 侧按条件拼接本类名（leptos 的 class:active 只能写死字面量） */
@@ -38,5 +48,12 @@
   color: #fff;
   font-weight: 600;
   background: linear-gradient(135deg, var(--indigo), var(--violet));
-  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(79, 91, 213, 0.35);
+}
+
+/* 标签页内容区：圆角浅描边容器 */
+.tab_content {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
 }
