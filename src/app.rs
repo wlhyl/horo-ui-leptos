@@ -43,8 +43,10 @@ pub fn App() -> impl IntoView {
                         <Route path=AppRoute::Home view=move || view! { <Home/> }/>
                         <Route path=AppRoute::Native view=move || view! { <native::Input mode=native::ChartMode::Native/> }/>
                         <Route path=AppRoute::Event view=move || view! { <native::Input mode=native::ChartMode::Event/> }/>
+                        <Route path=AppRoute::Derived view=move || view! { <native::Input mode=native::ChartMode::Derived/> }/>
                         <Route path=AppRoute::NativeChart view=move || view! { <native::Chart mode=native::ChartMode::Native/> }/>
                         <Route path=AppRoute::EventChart view=move || view! { <native::Chart mode=native::ChartMode::Event/> }/>
+                        <Route path=AppRoute::DerivedChart view=move || view! { <native::Chart mode=native::ChartMode::Derived/> }/>
                         <Route path=AppRoute::User view=move || view! { <user::User/> }/>
                         <Route path=AppRoute::Clean view=move || view! { <clean::Clean/> }/>
                         <Route path=AppRoute::Power view=move || view! { <power::Power/> }/>

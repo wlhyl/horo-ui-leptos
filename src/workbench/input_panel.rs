@@ -12,7 +12,9 @@ use crate::components::{
     AlertDialog, ArchiveSelector, DateTimeInput, FormState, FormStateStoreFields, GeoInput,
     HouseSelect,
 };
+use crate::enums::planet::TRADITIONAL_PLANETS;
 use crate::models::datetime::DateTimeData;
+use crate::render::glyphs::planet_glyph;
 use crate::storage::HoroStorage;
 use crate::workbench::window::{ChartType, WindowMgr, WindowRect};
 
@@ -35,6 +37,7 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
 
     // 分节折叠
     let show_native = RwSignal::new(true);
+    let show_derived = RwSignal::new(false);
     let show_event = RwSignal::new(false);
 
     // 夏令时提示（两段共用一个对话框，消息带前缀区分）
@@ -75,10 +78,12 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
         });
     }
 
-    // 打开窗口：取当前表单快照 + 工作区尺寸（级联摆放 / 贴边夹取用）
+    // 打开窗口：取当前表单快照 + 工作区尺寸（级联摆放 / 贴边夹取用）。
+    // 衍生盘以出生数据为基准（对齐原版 onOpenChart 取 horoData），
+    // 基准行星取 storage 中的当前值一并快照进窗口。
     let open_chart = move |chart_type: ChartType| {
         let snapshot = match chart_type {
-            ChartType::Native => (&*native_state.read()).into(),
+            ChartType::Native | ChartType::Derived => (&*native_state.read()).into(),
             ChartType::Event => (&*event_state.read()).into(),
         };
         let area = work_area
@@ -92,10 +97,13 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                 )
             })
             .unwrap_or_else(|| WindowRect::new(0.0, 0.0, 800.0, 600.0));
-        mgr.open(chart_type, snapshot, area);
+        let derived_planet =
+            (chart_type == ChartType::Derived).then(|| storage.derived_planet_name());
+        mgr.open(chart_type, snapshot, area, derived_planet);
     };
     let open_native = move |_| open_chart(ChartType::Native);
     let open_event = move |_| open_chart(ChartType::Event);
+    let open_derived = move |_| open_chart(ChartType::Derived);
 
     view! {
         <div class=style::panel>
@@ -157,6 +165,61 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                 </Show>
             </section>
 
+            // —— 衍生盘数据段（对齐原版 workbench：仅基准行星一项，默认收起）——
+            <section class=style::section>
+                <button
+                    class=style::section_header
+                    on:click=move |_| show_derived.update(|v| *v = !*v)
+                >
+                    <span class=style::section_title>"衍生盘数据"</span>
+                    <svg
+                        class=move || if show_derived.get() { style::chevron_up } else { style::chevron }
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    >
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+                <Show when=move || show_derived.get()>
+                    <div class=style::section_body>
+                        <div class=form::field>
+                            <label>"基准行星"</label>
+                            <div class=form::control>
+                                <select
+                                    on:change=move |ev| {
+                                        // 编辑实时写回 HoroStorage（对齐原版
+                                        // onDerivedPlanetNameChange → storage）
+                                        let v = event_target_value(&ev);
+                                        if let Some(p) = TRADITIONAL_PLANETS
+                                            .iter()
+                                            .copied()
+                                            .find(|p| p.to_string() == v)
+                                        {
+                                            storage.set_derived_planet_name(p);
+                                        }
+                                    }
+                                >
+                                    {TRADITIONAL_PLANETS
+                                        .iter()
+                                        .copied()
+                                        .map(|p| {
+                                            let selected =
+                                                move || storage.derived_planet_name() == p;
+                                            view! {
+                                                <option value=p.to_string() selected=selected>{planet_glyph(p)}</option>
+                                            }
+                                        })
+                                        .collect::<Vec<_>>()}
+                                </select>
+                            </div>
+                        </div>
+                        <p class=style::hint>
+                            "衍生盘以出生数据为基准，基准行星取其斜升作为中天；切换行星只影响新打开的衍生盘窗口"
+                        </p>
+                    </div>
+                </Show>
+            </section>
+
             // —— 天象数据段（对齐原版 workbench：不含姓名 / 性别）——
             <section class=style::section>
                 <button
@@ -202,6 +265,15 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                             </svg>
                             "天象盘"
+                        </button>
+                        <button class=style::chart_btn on:click=open_derived>
+                            // 顺时针环形箭头，同首页衍生盘入口
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                                <path d="M21 3v6h-6"/>
+                            </svg>
+                            "衍生盘"
                         </button>
                     </div>
                     <p class=style::hint>"窗口以打开时的数据为准，之后修改面板不影响已开窗口"</p>

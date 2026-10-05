@@ -1,6 +1,6 @@
 //! 后台 HTTP 调用封装（gloo-net，wasm fetch）。
 
-use crate::api::request::{HoroNativeRequest, LoginRequest};
+use crate::api::request::{DerivedHoroRequest, HoroNativeRequest, LoginRequest};
 use crate::api::response::{Horoscope, HoroscopeRecord, LocationResponse, PageResponser, TokenResponse};
 use crate::config::{ADMIN_API_BASE_URL, API_BASE_URL};
 use gloo_net::http::Request;
@@ -15,6 +15,22 @@ struct ErrorResponse {
 /// 调用 POST /api/horo/native 计算星盘。
 pub async fn post_native(req: &HoroNativeRequest) -> Result<Horoscope, String> {
     let url = format!("{API_BASE_URL}/api/horo/native");
+    Request::post(&url)
+        .header("Content-Type", "application/json")
+        .json(req)
+        .map_err(|e| format!("序列化失败：{e}"))?
+        .send()
+        .await
+        .map_err(|e| format!("网络错误：{e}"))?
+        .json::<Horoscope>()
+        .await
+        .map_err(|e| format!("解析响应失败：{e}"))
+}
+
+/// 调用 POST /api/horo/derived 计算衍生盘（基准行星的斜升为中天，
+/// 行星、恒星数据复用本命盘，响应不含日主星 / 时主星）。
+pub async fn post_derived(req: &DerivedHoroRequest) -> Result<Horoscope, String> {
+    let url = format!("{API_BASE_URL}/api/horo/derived");
     Request::post(&url)
         .header("Content-Type", "application/json")
         .json(req)

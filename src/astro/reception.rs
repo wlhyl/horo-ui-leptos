@@ -153,8 +153,8 @@ mod tests {
                 .map(|&(name, long)| planet(name, long))
                 .collect(),
             is_diurnal: true,
-            planetary_day: PlanetName::Sun,
-            planetary_hours: PlanetName::Sun,
+            planetary_day: Some(PlanetName::Sun),
+            planetary_hours: Some(PlanetName::Sun),
             aspects: vec![],
             antiscoins: vec![],
             contraantiscias: vec![],

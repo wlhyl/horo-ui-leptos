@@ -2,7 +2,7 @@
 //!
 //! 窗口的 rect / state / z_index 是动态字段：`For` 以 id 为 key 复用视图、
 //! 不会因 item 内容变化重渲染，因此这些字段在本组件内用 Memo 从 WindowMgr
-//! 读取；title / chart_type / snapshot 打开后不变，经 props 传入一次即可。
+//! 读取；title / chart_type / snapshot / derived_planet 打开后不变，经 props 传入一次即可。
 use leptos::prelude::*;
 
 use crate::workbench::window::{
@@ -267,6 +267,7 @@ pub fn WindowFrame(
                 <WindowContent
                     chart_type=window.chart_type
                     snapshot=window.snapshot.clone()
+                    derived_planet=window.derived_planet
                 />
             </div>
 

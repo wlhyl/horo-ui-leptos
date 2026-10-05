@@ -10,11 +10,16 @@ use leptos::prelude::*;
 
 use wasm_bindgen_futures::spawn_local;
 
-use crate::api::client::post_native;
-use crate::api::request::HoroNativeRequest;
+use crate::api::client::{post_derived, post_native};
+use crate::api::request::{DerivedHoroRequest, HoroNativeRequest};
 use crate::api::response::Horoscope;
 use crate::components::{AlertDialog, AspectGrid, ChartTimeEditor, ChartWheel, Detail};
+use crate::enums::house::HouseName;
+use crate::enums::planet::PlanetName;
+use crate::models::datetime::DateTimeData;
+use crate::models::geo::GeoPosition;
 use crate::native::ChartMode;
+use crate::render::glyphs::{planet_color, planet_glyph};
 use crate::shared::sleep_ms;
 use crate::storage::HoroStorage;
 
@@ -29,6 +34,31 @@ stylance::import_crate_style!(
 
 /// 时间变更后的防抖间隔（毫秒，对齐原版 applyStepChange 的 debounceTime(300)）。
 const DATE_DEBOUNCE_MS: i32 = 300;
+
+/// 按盘类型分流后台请求：本命 / 天象走 native 接口，衍生盘走 derived 接口。
+/// 衍生盘的基准行星取页面进入时的快照，页面内不切换（对齐原版 image 组件）。
+async fn fetch(
+    mode: ChartMode,
+    date: DateTimeData,
+    geo: GeoPosition,
+    house: HouseName,
+    derived_planet: PlanetName,
+) -> Result<Horoscope, String> {
+    match mode {
+        ChartMode::Native | ChartMode::Event => {
+            post_native(&HoroNativeRequest { date, geo, house }).await
+        }
+        ChartMode::Derived => {
+            post_derived(&DerivedHoroRequest {
+                date,
+                geo,
+                house,
+                planet_name: derived_planet,
+            })
+            .await
+        }
+    }
+}
 
 #[derive(Clone, Copy, PartialEq)]
 enum Tab {
@@ -45,15 +75,13 @@ pub fn Chart(mode: ChartMode) -> impl IntoView {
     // 输入页已把数据写入存储，这里按本页类型取回并请求后台。
     // date 单独放进页面本地信号供时间编辑条修改（对应原版 image 页的
     // currentHoroData 内存副本，改完不写回 storage）；geo / house 不可编辑，取快照。
+    // 衍生盘以出生数据为基准（与本命盘共用 horo_data），基准行星一并取快照。
     let data = match mode {
-        ChartMode::Native => storage.horo_data(),
         ChartMode::Event => storage.event_data(),
+        ChartMode::Native | ChartMode::Derived => storage.horo_data(),
     };
-    let request = HoroNativeRequest {
-        date: data.date,
-        geo: data.geo,
-        house: data.house,
-    };
+    let (geo, house) = (data.geo, data.house);
+    let derived_planet = storage.derived_planet_name();
     let date = RwSignal::new(data.date);
 
     let (result, set_result) = signal(None::<Result<Horoscope, String>>);
@@ -67,7 +95,7 @@ pub fn Chart(mode: ChartMode) -> impl IntoView {
     // 首次立即请求（保持首屏速度）
     spawn_local(async move {
         loading.set(true);
-        let res = post_native(&request).await;
+        let res = fetch(mode, data.date, geo, house, derived_planet).await;
         loading.set(false);
         if let Err(e) = &res {
             alert_msg.set(e.clone());
@@ -87,14 +115,13 @@ pub fn Chart(mode: ChartMode) -> impl IntoView {
         }
         generation.update(|g| *g += 1);
         let curr_gen = generation.get_untracked();
-        let request = HoroNativeRequest { date: d, ..request };
         spawn_local(async move {
             loading.set(true);
             sleep_ms(DATE_DEBOUNCE_MS).await;
             if generation.get_untracked() != curr_gen {
                 return;
             }
-            let res = post_native(&request).await;
+            let res = fetch(mode, d, geo, house, derived_planet).await;
             if generation.get_untracked() != curr_gen {
                 return;
             }
@@ -119,9 +146,22 @@ pub fn Chart(mode: ChartMode) -> impl IntoView {
         <div class=card::card>
             <div class=style::summary>
                 <span>
-                    <b>{if mode == ChartMode::Native { "本命星盘" } else { "天象盘" }}</b>
+                    <b>{match mode {
+                        ChartMode::Native => "本命星盘",
+                        ChartMode::Event => "天象盘",
+                        ChartMode::Derived => "衍生盘",
+                    }}</b>
                 </span>
                 <span>{summary}</span>
+                // 基准行星：仅衍生盘显示（对应原版 image.component.html 32-37 行）
+                <Show when=move || mode == ChartMode::Derived fallback=|| ()>
+                    <span class=style::derived_planet>
+                        "基准行星："
+                        <span style=format!("color:{}", planet_color(derived_planet))>
+                            {planet_glyph(derived_planet)}
+                        </span>
+                    </span>
+                </Show>
             </div>
 
             <ChartTimeEditor date=date />

@@ -10,11 +10,15 @@ use leptos::prelude::*;
 
 use wasm_bindgen_futures::spawn_local;
 
-use crate::api::client::post_native;
-use crate::api::request::HoroNativeRequest;
+use crate::api::client::{post_derived, post_native};
+use crate::api::request::{DerivedHoroRequest, HoroNativeRequest};
 use crate::api::response::Horoscope;
 use crate::components::{ChartTimeEditor, ChartWheel};
+use crate::enums::house::HouseName;
+use crate::enums::planet::PlanetName;
 use crate::models::data::HoroData;
+use crate::models::datetime::DateTimeData;
+use crate::models::geo::GeoPosition;
 use crate::shared::sleep_ms;
 use crate::workbench::window::ChartType;
 
@@ -28,16 +32,40 @@ stylance::import_crate_style!(
 /// 时间变更 / 重试的防抖间隔（毫秒，对齐原版 applyStepChange 的 debounceTime(300)）。
 const DATE_DEBOUNCE_MS: i32 = 300;
 
+/// 按窗口类型分流后台请求：衍生盘走 derived 接口（基准行星取开窗快照），
+/// 本命 / 天象共用 native 接口。
+async fn fetch(
+    chart_type: ChartType,
+    date: DateTimeData,
+    geo: GeoPosition,
+    house: HouseName,
+    derived_planet: Option<PlanetName>,
+) -> Result<Horoscope, String> {
+    match chart_type {
+        ChartType::Native | ChartType::Event => {
+            post_native(&HoroNativeRequest { date, geo, house }).await
+        }
+        ChartType::Derived => {
+            post_derived(&DerivedHoroRequest {
+                date,
+                geo,
+                house,
+                planet_name: derived_planet.unwrap_or(PlanetName::Sun),
+            })
+            .await
+        }
+    }
+}
+
 #[component]
-pub fn WindowContent(chart_type: ChartType, snapshot: HoroData) -> impl IntoView {
-    // 本命 / 天象共用同一后台接口，仅快照来源不同（面板按类型取对应表单）。
-    // chart_type 保留为 prop 以便后续接入衍生盘 / 推运盘时区分请求与渲染分支。
-    let _ = chart_type;
-    let request = HoroNativeRequest {
-        date: snapshot.date,
-        geo: snapshot.geo,
-        house: snapshot.house,
-    };
+pub fn WindowContent(
+    chart_type: ChartType,
+    snapshot: HoroData,
+    derived_planet: Option<PlanetName>,
+) -> impl IntoView {
+    // 仅快照来源不同（面板按类型取对应表单）：本命 / 衍生盘取出生数据，
+    // 天象取天象数据；衍生盘请求额外携带基准行星快照。
+    let (geo, house) = (snapshot.geo, snapshot.house);
     // 窗口本地的日期信号（对应原版 embedded image 组件的 currentHoroData）：
     // 只影响本窗口的请求与显示，不回写快照 / 面板 / localStorage。
     let date = RwSignal::new(snapshot.date);
@@ -53,7 +81,7 @@ pub fn WindowContent(chart_type: ChartType, snapshot: HoroData) -> impl IntoView
     // 打开窗口立即请求（保持首屏速度）
     spawn_local(async move {
         loading.set(true);
-        let res = post_native(&request).await;
+        let res = fetch(chart_type, snapshot.date, geo, house, derived_planet).await;
         loading.set(false);
         result.set(Some(res));
     });
@@ -70,14 +98,13 @@ pub fn WindowContent(chart_type: ChartType, snapshot: HoroData) -> impl IntoView
         }
         generation.update(|g| *g += 1);
         let curr_gen = generation.get_untracked();
-        let request = HoroNativeRequest { date: d, ..request };
         spawn_local(async move {
             loading.set(true);
             sleep_ms(DATE_DEBOUNCE_MS).await;
             if generation.get_untracked() != curr_gen {
                 return;
             }
-            let res = post_native(&request).await;
+            let res = fetch(chart_type, d, geo, house, derived_planet).await;
             if generation.get_untracked() != curr_gen {
                 return;
             }

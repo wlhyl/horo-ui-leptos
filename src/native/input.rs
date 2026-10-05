@@ -1,6 +1,7 @@
-//! 输入页（本命 / 天象双模式）。
+//! 输入页（本命 / 天象 / 衍生盘多模式）。
 use std::cell::Cell;
 
+use leptos::control_flow::Show;
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use leptos_router::NavigateOptions;
@@ -10,9 +11,11 @@ use crate::components::{
     AlertDialog, ArchiveSelector, DateTimeInput, FormState, FormStateStoreFields, GeoInput,
     HouseSelect,
 };
-use crate::native::ChartMode;
+use crate::enums::planet::TRADITIONAL_PLANETS;
 use crate::models::data::HoroData;
 use crate::models::datetime::DateTimeData;
+use crate::native::ChartMode;
+use crate::render::glyphs::planet_glyph;
 use crate::routes::AppRoute;
 use crate::storage::HoroStorage;
 
@@ -33,12 +36,15 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
     // 必须在渲染期（Router 上下文内）取导航器，事件闭包里调用会拿不到上下文
     let nav = use_navigate();
 
-    // 进入页面时从本地缓存恢复上次输入（对应原版 ionViewWillEnter）
+    // 进入页面时从本地缓存恢复上次输入（对应原版 ionViewWillEnter）。
+    // 衍生盘以出生数据为基准，与本命盘共用 horo_data（对齐原版 else 分支）。
     let restored = match mode {
         ChartMode::Event => storage.event_data(),
-        ChartMode::Native => storage.horo_data(),
+        ChartMode::Native | ChartMode::Derived => storage.horo_data(),
     };
     let state = Store::new(FormState::from(restored));
+    // 衍生盘基准行星：进入页面时从缓存恢复，提交时写回
+    let derived_planet = RwSignal::new(storage.derived_planet_name());
     let err = RwSignal::new(String::new());
 
     // 夏令时提示：日期字段变化且处于中国夏令时区间时弹框（对应原版
@@ -81,16 +87,21 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
             return;
         }
         let horo = HoroData::from(&*s);
-        // 写回本地缓存（对应原版 getHoro）；结果页据此取数并请求后台
+        // 写回本地缓存（对应原版 getHoro）；结果页据此取数并请求后台。
+        // 衍生盘随出生数据一并写回基准行星。
         match mode {
             ChartMode::Event => storage.set_event_data(horo),
-            ChartMode::Native => storage.set_horo_data(horo),
+            ChartMode::Native | ChartMode::Derived => storage.set_horo_data(horo),
+        }
+        if mode == ChartMode::Derived {
+            storage.set_derived_planet_name(derived_planet.get_untracked());
         }
         err.set(String::new());
         // 结果页按类型分路由，组件据此读取对应的缓存数据
         let path = match mode {
             ChartMode::Native => AppRoute::NativeChart.path(),
             ChartMode::Event => AppRoute::EventChart.path(),
+            ChartMode::Derived => AppRoute::DerivedChart.path(),
         };
         nav(path, NavigateOptions::default());
     };
@@ -99,7 +110,11 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
         <div class=card::card>
             // 标题行：右侧放「从档案库选择」（整表级回填入口，两种盘模式均可用）
             <div class=style::header>
-                <h2>{if mode == ChartMode::Native { "本命星盘" } else { "天象盘" }}</h2>
+                <h2>{match mode {
+                    ChartMode::Native => "本命星盘",
+                    ChartMode::Event => "天象盘",
+                    ChartMode::Derived => "衍生盘",
+                }}</h2>
                 <ArchiveSelector state=state/>
             </div>
             <div class=style::form_grid>
@@ -143,8 +158,43 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
                 <GeoInput state=state/>
                 <HouseSelect state=state/>
 
+                // 基准行星：仅衍生盘显示（对应原版 native.page.html 109-125 行）
+                <Show when=move || mode == ChartMode::Derived fallback=|| ()>
+                    <div class=form::field>
+                        <label>"基准行星"</label>
+                        <div class=form::control>
+                            <select
+                                on:change=move |ev| {
+                                    let v = event_target_value(&ev);
+                                    // 选项 value 即枚举变体名（PlanetName 序列化名）
+                                    if let Some(p) = TRADITIONAL_PLANETS
+                                        .iter()
+                                        .copied()
+                                        .find(|p| p.to_string() == v)
+                                    {
+                                        derived_planet.set(p);
+                                    }
+                                }
+                            >
+                                {TRADITIONAL_PLANETS
+                                    .iter()
+                                    .copied()
+                                    .map(|p| {
+                                        let selected = move || derived_planet.get() == p;
+                                        view! { <option value=p.to_string() selected=selected>{planet_glyph(p)}</option> }
+                                    })
+                                    .collect::<Vec<_>>()}
+                            </select>
+                        </div>
+                    </div>
+                </Show>
+
                 <button class=form::btn_primary on:click=submit>
-                    {if mode == ChartMode::Native { "生成本命星盘" } else { "生成天象盘" }}
+                    {match mode {
+                        ChartMode::Native => "生成本命星盘",
+                        ChartMode::Event => "生成天象盘",
+                        ChartMode::Derived => "生成衍生盘",
+                    }}
                 </button>
             </div>
         </div>

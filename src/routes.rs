@@ -10,10 +10,14 @@ pub enum AppRoute {
     Native,
     /// 天象盘输入页。
     Event,
+    /// 衍生盘输入页。
+    Derived,
     /// 本命星盘结果页。
     NativeChart,
     /// 天象盘结果页。
     EventChart,
+    /// 衍生盘结果页。
+    DerivedChart,
     /// 用户登录页。
     User,
     /// 清除缓存页。
@@ -31,8 +35,10 @@ impl AppRoute {
             AppRoute::Home => "/",
             AppRoute::Native => "/native",
             AppRoute::Event => "/event",
+            AppRoute::Derived => "/derived",
             AppRoute::NativeChart => "/native/chart",
             AppRoute::EventChart => "/event/chart",
+            AppRoute::DerivedChart => "/derived/chart",
             AppRoute::User => "/user",
             AppRoute::Clean => "/clean",
             AppRoute::Power => "/power",
@@ -101,6 +107,11 @@ mod tests {
         // 不做前缀匹配，避免 /native/chart/detail 之类的路径被上层路由吃掉
         assert!(!matches(AppRoute::NativeChart, "/native/chart/detail"));
 
+        assert!(matches(AppRoute::Derived, "/derived"));
+        assert!(matches(AppRoute::DerivedChart, "/derived/chart"));
+        assert!(!matches(AppRoute::NativeChart, "/derived/chart"));
+        assert!(!matches(AppRoute::DerivedChart, "/native/chart"));
+
         assert!(matches(AppRoute::User, "/user"));
         assert!(!matches(AppRoute::User, "/"));
         assert!(!matches(AppRoute::Home, "/user"));
@@ -120,8 +131,10 @@ mod tests {
             AppRoute::Home,
             AppRoute::Native,
             AppRoute::Event,
+            AppRoute::Derived,
             AppRoute::NativeChart,
             AppRoute::EventChart,
+            AppRoute::DerivedChart,
             AppRoute::User,
             AppRoute::Clean,
             AppRoute::Power,

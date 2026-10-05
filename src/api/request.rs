@@ -5,7 +5,7 @@
 use serde::Serialize;
 
 use crate::{
-    enums::house::HouseName,
+    enums::{house::HouseName, planet::PlanetName},
     models::datetime::DateTimeData,
     models::geo::GeoPosition,
 };
@@ -16,6 +16,16 @@ pub struct HoroNativeRequest {
     pub date: DateTimeData,
     pub geo: GeoPosition,
     pub house: HouseName,
+}
+
+/// 衍生盘请求体：以指定行星的斜升（OA）为基准计算衍生盘。
+#[derive(Clone, Copy, Serialize)]
+pub struct DerivedHoroRequest {
+    pub date: DateTimeData,
+    pub geo: GeoPosition,
+    pub house: HouseName,
+    /// 衍生盘的基准行星
+    pub planet_name: PlanetName,
 }
 
 /// 登录请求体（horo-storage-api：name/password 均要求非空）。

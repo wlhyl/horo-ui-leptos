@@ -3,8 +3,10 @@
 //! 窗口数量少（<20），整表 `RwSignal<Vec<…>>` 更新开销可忽略，不引入更细粒度结构。
 use leptos::prelude::*;
 
+use crate::enums::planet::PlanetName;
 use crate::models::data::HoroData;
 use crate::models::datetime::DateTimeData;
+use crate::render::glyphs::planet_glyph;
 
 /// 默认窗口尺寸（与原版一致）。
 const DEFAULT_WIDTH: f64 = 460.0;
@@ -19,7 +21,7 @@ const CASCADE_STEPS: u32 = 8;
 /// 窗口与工作区边缘的最小留白。
 const MARGIN: f64 = 10.0;
 
-/// 窗口可打开的星盘类型。后续接入衍生盘 / 推运盘时在此扩展，
+/// 窗口可打开的星盘类型。后续接入推运盘时在此扩展，
 /// 并在 window_content 中补充对应的请求与渲染分支。
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ChartType {
@@ -27,6 +29,8 @@ pub enum ChartType {
     Native,
     /// 天象盘（快照取输入面板的天象数据）
     Event,
+    /// 衍生盘（快照取出生数据 + 基准行星，行星斜升为中天）
+    Derived,
 }
 
 impl ChartType {
@@ -35,6 +39,7 @@ impl ChartType {
         match self {
             ChartType::Native => "本命盘",
             ChartType::Event => "天象盘",
+            ChartType::Derived => "衍生盘",
         }
     }
 }
@@ -103,6 +108,9 @@ pub struct WorkbenchWindow {
     pub prev_rect: Option<WindowRect>,
     /// 打开时刻的输入数据快照：面板后续编辑不影响已开窗口
     pub snapshot: HoroData,
+    /// 衍生盘窗口的基准行星（打开时快照，窗口间相互独立；非衍生盘为 None，
+    /// 对应原版 WorkbenchWindow.derivedPlanetName）
+    pub derived_planet: Option<PlanetName>,
 }
 
 /// 日期摘要："2000-01-01 12:00"，拼进窗口标题。
@@ -179,7 +187,14 @@ impl WindowMgr {
 
     /// 打开新窗口：级联摆放并夹取到工作区内，打开时快照输入数据。
     /// `work_area` 为工作区尺寸（宽高，原点 0,0）。
-    pub fn open(&self, chart_type: ChartType, snapshot: HoroData, work_area: WindowRect) {
+    /// 衍生盘窗口经 `derived_planet` 携带基准行星快照（其余类型传 None）。
+    pub fn open(
+        &self,
+        chart_type: ChartType,
+        snapshot: HoroData,
+        work_area: WindowRect,
+        derived_planet: Option<PlanetName>,
+    ) {
         let offset = (self.cascade_index.get_untracked() % CASCADE_STEPS) as f64 * CASCADE_OFFSET;
         // 默认尺寸按工作区收紧（宽高都裁进工作区，而非只贴回 x/y）
         let fitted = WindowRect::new(
@@ -195,11 +210,16 @@ impl WindowMgr {
 
         let id = self.next_id();
         let z = self.next_z();
-        let title = format!(
-            "{} · {}",
-            chart_type.title(),
-            date_summary(&snapshot.date)
-        );
+        // 衍生盘标题带基准行星符号（如「衍生盘·♄」）
+        let title = match chart_type {
+            ChartType::Derived => format!(
+                "{}·{} · {}",
+                chart_type.title(),
+                planet_glyph(derived_planet.unwrap_or(PlanetName::Sun)),
+                date_summary(&snapshot.date)
+            ),
+            _ => format!("{} · {}", chart_type.title(), date_summary(&snapshot.date)),
+        };
         self.windows.update(|wins| {
             wins.push(WorkbenchWindow {
                 id,
@@ -218,6 +238,8 @@ impl WindowMgr {
                 z_index: z,
                 prev_rect: area_too_narrow.then_some(fitted),
                 snapshot,
+                derived_planet: (chart_type == ChartType::Derived)
+                    .then_some(derived_planet.unwrap_or(PlanetName::Sun)),
             })
         });
         self.cascade_index.update(|i| *i += 1);

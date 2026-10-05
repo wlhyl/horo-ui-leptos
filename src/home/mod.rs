@@ -25,6 +25,12 @@ pub fn Home() -> impl IntoView {
             nav(AppRoute::Event.path(), NavigateOptions::default());
         }
     };
+    let go_derived = {
+        let nav = nav.clone();
+        move |_| {
+            nav(AppRoute::Derived.path(), NavigateOptions::default());
+        }
+    };
     let go_clean = {
         let nav = nav.clone();
         move |_| {
@@ -81,6 +87,19 @@ pub fn Home() -> impl IntoView {
                     </div>
                     <div class=style::home_name>"天象盘"</div>
                     <div class=style::home_desc>"任意时刻天象"</div>
+                </button>
+                // 衍生盘入口：以出生数据为基准的旋转盘（基准行星斜升为中天）
+                <button class=style::home_card on:click=go_derived>
+                    <div class=style::home_icon>
+                        // 顺时针环形箭头，象征整盘绕基准行星旋转
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                            <path d="M21 3v6h-6"/>
+                        </svg>
+                    </div>
+                    <div class=style::home_name>"衍生盘"</div>
+                    <div class=style::home_desc>"基准行星斜升为中天"</div>
                 </button>
                 // 行星力量表入口：静态占星参考（庙/旺/三分/界/面/陷/落）
                 <button class=style::home_card on:click=go_power>

@@ -14,6 +14,11 @@
   font-weight: 600;
 }
 
+/* 衍生盘摘要的基准行星段：文字用主色，行星符号按行星配色内联着色 */
+.derived_planet {
+  color: var(--text-0);
+}
+
 /* 小巧的分段式标签：轨道随内容收缩，激活段渐变胶囊（配色与主按钮一致） */
 .tabs {
   display: inline-flex;

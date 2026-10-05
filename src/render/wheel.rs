@@ -173,8 +173,9 @@ pub fn build_wheel_svg(h: &Horoscope, size: f64) -> String {
     }
 
     // 左上角说明
-    // 四行说明会伸进外圆内部，字号受制于最靠下的「时主星」一行与外圆左边缘的间距，
-    // 故整体比圆盘内文字略小：首行贴近左上角、行距收紧，把四行都尽量上移留出安全距离。
+    // 说明行数随数据变化（衍生盘不含日主星 / 时主星，对应原版 calculateNotesElements
+    // 的 undefined 跳过逻辑），故逐行推进 ly；有条件出现的行受最靠下一行与外圆
+    // 左边缘间距的制约，整体比圆盘内文字略小：首行贴近左上角、行距收紧。
     let mut ly = size * 0.024;
     let fs = size * 0.03;
     s.push_str(&svg_text(
@@ -201,27 +202,31 @@ pub fn build_wheel_svg(h: &Horoscope, size: f64) -> String {
         500,
     ));
     ly += fs * 1.3;
-    s.push_str(&svg_text(8.0, ly, fs, "日主星:", MUTE, "start", 400));
-    s.push_str(&svg_text(
-        8.0 + fs * 3.6,
-        ly,
-        fs,
-        planet_glyph(h.planetary_day),
-        planet_color(h.planetary_day),
-        "start",
-        600,
-    ));
-    ly += fs * 1.3;
-    s.push_str(&svg_text(8.0, ly, fs, "时主星:", MUTE, "start", 400));
-    s.push_str(&svg_text(
-        8.0 + fs * 3.6,
-        ly,
-        fs,
-        planet_glyph(h.planetary_hours),
-        planet_color(h.planetary_hours),
-        "start",
-        600,
-    ));
+    if let Some(day) = h.planetary_day {
+        s.push_str(&svg_text(8.0, ly, fs, "日主星:", MUTE, "start", 400));
+        s.push_str(&svg_text(
+            8.0 + fs * 3.6,
+            ly,
+            fs,
+            planet_glyph(day),
+            planet_color(day),
+            "start",
+            600,
+        ));
+        ly += fs * 1.3;
+    }
+    if let Some(hours) = h.planetary_hours {
+        s.push_str(&svg_text(8.0, ly, fs, "时主星:", MUTE, "start", 400));
+        s.push_str(&svg_text(
+            8.0 + fs * 3.6,
+            ly,
+            fs,
+            planet_glyph(hours),
+            planet_color(hours),
+            "start",
+            600,
+        ));
+    }
 
     s
 }

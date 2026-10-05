@@ -122,8 +122,9 @@ pub struct Horoscope {
     pub part_of_fortune: Planet,
     pub planets: Vec<Planet>,
     pub is_diurnal: bool,
-    pub planetary_day: PlanetName,
-    pub planetary_hours: PlanetName,
+    /// 日主星 / 时主星：衍生盘响应不含这两个字段（行星数据复用本命盘），缺省为 None
+    pub planetary_day: Option<PlanetName>,
+    pub planetary_hours: Option<PlanetName>,
     pub aspects: Vec<Aspect>,
     pub antiscoins: Vec<Aspect>,
     pub contraantiscias: Vec<Aspect>,
