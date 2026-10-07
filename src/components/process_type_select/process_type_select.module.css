@@ -1,0 +1,118 @@
+/*! 推运类型下拉：触发器外观对齐全局 select，弹层为可定制的分组列表。 */
+
+.wrap {
+  /* 在 form::control（flex 容器）中占满整行，与原生 select 的 width:100% 一致 */
+  width: 100%;
+  position: relative;
+}
+
+/* 触发器：对齐 styles/main.css 里 select 的外观（内边距 / 字号 / 圆角 / 聚焦环） */
+.trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 12px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--text-0);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.trigger:focus-visible {
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(79, 91, 213, 0.18);
+}
+
+/* 展开态复用同一组基础样式，仅追加旋转（Rust 侧按 open 二选一挂类名） */
+.chevron,
+.chevron_open {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--text-1);
+  transition: transform 0.15s ease;
+}
+
+.chevron_open {
+  transform: rotate(180deg);
+}
+
+/* 透明遮罩：点击 / 滚轮 / 触摸滚动弹层以外区域时收起（层级紧贴弹层之下） */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  cursor: default;
+}
+
+/* 弹层：position 与坐标由 Rust 侧按触发器位置以行内样式给出（fixed 脱离
+   侧栏滚动容器的裁剪），下方空间不足时以 bottom 锚点向上弹出，最大高度
+   同样由行内样式按可用空间收紧 */
+.popup {
+  position: fixed;
+  z-index: 1000;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(20, 30, 50, 0.18);
+  overflow-y: auto;
+}
+
+.group_label {
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-1);
+}
+
+/* 组间分隔线：与「添加星盘」按钮组的分隔线同款 */
+.divider {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--line);
+}
+
+.option,
+.option_active {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-0);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.option:hover {
+  background: rgba(184, 134, 11, 0.1);
+  color: var(--gold);
+}
+
+.option_active {
+  color: var(--gold);
+  font-weight: 600;
+  background: rgba(184, 134, 11, 0.12);
+}
+
+.check {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}

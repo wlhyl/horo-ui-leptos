@@ -10,11 +10,10 @@ use reactive_stores::Store;
 
 use crate::components::{
     AlertDialog, ArchiveSelector, DateTimeInput, FormState, FormStateStoreFields, GeoInput,
-    HouseSelect,
+    HouseSelect, ProcessTypeSelect,
 };
 use crate::direction::utils::{
-    ARC_TO_DATE_METHODS, DAILY_DIRECTION_METHODS, DIRECTION_METHODS, DIRECTION_PROCESSES,
-    method_select, process_title, process_value,
+    ARC_TO_DATE_METHODS, DAILY_DIRECTION_METHODS, DIRECTION_METHODS, PROCESS_OPTIONS, method_select,
 };
 use crate::enums::planet::TRADITIONAL_PLANETS;
 use crate::enums::process_name::ProcessName;
@@ -66,11 +65,9 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
         lat: base.geo.lat,
         house: storage.horo_data().house,
     });
-    // 缓存里的推运类型可能是其他推运盘的旧值，恢复时钳制到本面板支持的三种
+    // 缓存里的推运类型可能是其他推运盘的旧值，恢复时钳制到本面板支持的六种
     let process_name = RwSignal::new(match base.process_name {
-        ProcessName::Direction | ProcessName::DailyDirection | ProcessName::SolarArc => {
-            base.process_name
-        }
+        p if PROCESS_OPTIONS.contains(&p) => p,
         _ => ProcessName::Direction,
     });
     let is_solar_return = RwSignal::new(base.is_solar_return);
@@ -158,7 +155,7 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
 
     // 打开窗口：取当前表单快照 + 工作区尺寸（级联摆放 / 贴边夹取用）。
     // 衍生盘以出生数据为基准（对齐原版 onOpenChart 取 horoData），
-    // 基准行星取 storage 中的当前值一并快照进窗口；方向推运三类窗口
+    // 基准行星取 storage 中的当前值一并快照进窗口；方向推运 / 返照盘类窗口
     // 另携推运数据快照（面板 Effect 实时写回，storage 即当前值）。
     let open_chart = move |chart_type: ChartType| {
         let snapshot = match chart_type {
@@ -167,7 +164,10 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
             | ChartType::Derived
             | ChartType::Direction
             | ChartType::DailyDirection
-            | ChartType::SolarArc => (&*native_state.read()).into(),
+            | ChartType::SolarArc
+            | ChartType::SolarReturn
+            | ChartType::LunarReturn
+            | ChartType::DailyReturn => (&*native_state.read()).into(),
         };
         let area = work_area
             .get()
@@ -182,7 +182,7 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
             .unwrap_or_else(|| WindowRect::new(0.0, 0.0, 800.0, 600.0));
         let derived_planet =
             (chart_type == ChartType::Derived).then(|| storage.derived_planet_name());
-        let process = chart_type.is_direction().then(|| storage.process_data());
+        let process = chart_type.is_process().then(|| storage.process_data());
         mgr.open(chart_type, snapshot, area, derived_planet, process);
     };
     let open_native = move |_| open_chart(ChartType::Native);
@@ -191,6 +191,9 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
     let open_direction = move |_| open_chart(ChartType::Direction);
     let open_daily_direction = move |_| open_chart(ChartType::DailyDirection);
     let open_solar_arc = move |_| open_chart(ChartType::SolarArc);
+    let open_solar_return = move |_| open_chart(ChartType::SolarReturn);
+    let open_lunar_return = move |_| open_chart(ChartType::LunarReturn);
+    let open_daily_return = move |_| open_chart(ChartType::DailyReturn);
 
     view! {
         <div class=style::panel>
@@ -327,32 +330,9 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                         <div class=form::field>
                             <label>"推运类型"</label>
                             <div class=form::control>
-                                <select
-                                    on:change=move |ev| {
-                                        // 编辑实时写回 HoroStorage（对齐原版 onProcessDataChange）
-                                        let v = event_target_value(&ev);
-                                        if let Some(p) = DIRECTION_PROCESSES
-                                            .iter()
-                                            .copied()
-                                            .find(|p| process_value(*p) == v)
-                                        {
-                                            process_name.set(p);
-                                        }
-                                    }
-                                >
-                                    {DIRECTION_PROCESSES
-                                        .iter()
-                                        .copied()
-                                        .map(|p| {
-                                            let selected = move || process_name.get() == p;
-                                            view! {
-                                                <option value=process_value(p) selected=selected>
-                                                    {process_title(p)}
-                                                </option>
-                                            }
-                                        })
-                                        .collect::<Vec<_>>()}
-                                </select>
+                                // 自定义分组下拉（方向推运 / 返照盘两组，组间分隔线）；
+                                // 选择写回 process_name 信号，下方 Effect 实时落 localStorage
+                                <ProcessTypeSelect process_name/>
                             </div>
                         </div>
                         <DateTimeInput state=process_state/>
@@ -366,8 +346,28 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                             fallback=|| ()
                         >
                             {method_select("方向弧算法", daily_direction_method, &DAILY_DIRECTION_METHODS)}
+                        </Show>
+                        // 日返月亮 / 日返月返：月返 / 每日回归 / 每日回归方向弧可基于
+                        // 日返逐层取返照时刻（标签随类型变化，对齐原版 process.page）
+                        <Show
+                            when=move || {
+                                matches!(
+                                    process_name.get(),
+                                    ProcessName::DailyDirection
+                                        | ProcessName::LunarReturn
+                                        | ProcessName::DailyReturn
+                                )
+                            }
+                            fallback=|| ()
+                        >
                             <div class=form::field>
-                                <label>"日返月亮"</label>
+                                <label>{move || {
+                                    if process_name.get() == ProcessName::DailyReturn {
+                                        "日返月返"
+                                    } else {
+                                        "日返月亮"
+                                    }
+                                }}</label>
                                 <div class=form::control>
                                     <label class=form::toggle>
                                         <input type="checkbox" bind:checked=is_solar_return/>
@@ -377,7 +377,7 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                             </div>
                         </Show>
                         <p class=style::hint>
-                            "推运数据实时写回本地缓存；方向推运窗口按打开时刻的快照计算"
+                            "推运数据实时写回本地缓存；方向推运 / 返照盘窗口按打开时刻的快照计算"
                         </p>
                     </div>
                 </Show>
@@ -438,6 +438,9 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                             </svg>
                             "衍生盘"
                         </button>
+                        // 分组分隔线：命盘 / 方向推运 / 返照盘三组（与推运类型
+                        // 下拉的 optgroup 分组对应）
+                        <div class=style::chart_divider/>
                         <button class=style::chart_btn on:click=open_direction>
                             // 沙漏轮廓，同首页推运入口
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -458,7 +461,7 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                                 <path d="M20 12a8 8 0 0 1-14 5.3"/>
                                 <path d="M6 22v-5h5"/>
                             </svg>
-                            "每日回归"
+                            "每日回归方向弧"
                         </button>
                         <button class=style::chart_btn on:click=open_solar_arc>
                             // 太阳弧：日轮加运动弧线
@@ -473,6 +476,37 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                                 <path d="M17 17l2.1 2.1"/>
                             </svg>
                             "太阳弧"
+                        </button>
+                        // 分组分隔线：方向推运与返照盘两组按钮之间
+                        <div class=style::chart_divider/>
+                        <button class=style::chart_btn on:click=open_solar_return>
+                            // 日返：环形回到起点的箭头环绕日轮
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3.5"/>
+                                <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                                <path d="M21 3v6h-6"/>
+                            </svg>
+                            "日返"
+                        </button>
+                        <button class=style::chart_btn on:click=open_lunar_return>
+                            // 月返：月牙轮廓
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+                            </svg>
+                            "月返"
+                        </button>
+                        <button class=style::chart_btn on:click=open_daily_return>
+                            // 每日回归：双向循环箭头
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+                                <path d="M21 3v5h-5"/>
+                                <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+                                <path d="M3 21v-5h5"/>
+                            </svg>
+                            "每日回归"
                         </button>
                     </div>
                     <p class=style::hint>"窗口以打开时的数据为准，之后修改面板不影响已开窗口"</p>

@@ -11,6 +11,7 @@ use crate::enums::process_name::ProcessName;
 use crate::home::Home;
 use crate::native;
 use crate::power;
+use crate::return_chart;
 use crate::routes::AppRoute;
 use crate::storage::HoroStorage;
 use crate::user;
@@ -57,6 +58,9 @@ pub fn App() -> impl IntoView {
                         <Route path=AppRoute::Direction view=move || view! { <direction::DirectionPage mode=ProcessName::Direction/> }/>
                         <Route path=AppRoute::DailyDirection view=move || view! { <direction::DirectionPage mode=ProcessName::DailyDirection/> }/>
                         <Route path=AppRoute::SolarArc view=move || view! { <direction::DirectionPage mode=ProcessName::SolarArc/> }/>
+                        <Route path=AppRoute::ReturnSolar view=move || view! { <return_chart::ReturnPage mode=ProcessName::SolarReturn/> }/>
+                        <Route path=AppRoute::ReturnLunar view=move || view! { <return_chart::ReturnPage mode=ProcessName::LunarReturn/> }/>
+                        <Route path=AppRoute::ReturnDaily view=move || view! { <return_chart::ReturnPage mode=ProcessName::DailyReturn/> }/>
                         <Route path=AppRoute::User view=move || view! { <user::User/> }/>
                         <Route path=AppRoute::Clean view=move || view! { <clean::Clean/> }/>
                         <Route path=AppRoute::Power view=move || view! { <power::Power/> }/>

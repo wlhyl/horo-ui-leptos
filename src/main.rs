@@ -12,6 +12,7 @@ mod models;
 mod native;
 mod power;
 mod render;
+mod return_chart;
 mod routes;
 mod shared;
 mod storage;

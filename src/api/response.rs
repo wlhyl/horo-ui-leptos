@@ -4,6 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::astro::horo_math::deg_norm;
 use crate::enums::{
     house::HouseName,
     planet::{PlanetName, PlanetSpeedState},
@@ -133,11 +134,61 @@ pub struct Horoscope {
     pub fixed_stars: Vec<FixedStar>,
 }
 
-/// 返照盘响应（horo-api /api/process/return/*），仅声明前端需要的字段。
-#[derive(Clone, Copy, PartialEq, Deserialize)]
+/// 返照盘响应（horo-api /api/process/return/*），仅声明前端需要的字段
+/// （后台 ReturnHoroscop 另有 native_date / process_date / geo，由 serde 自动忽略）。
+/// 后台不返回恒星与日主星 / 时主星（转 Horoscope 时分别置空 / None）。
+#[derive(Clone, Deserialize)]
 pub struct ReturnHoroscope {
     /// 返照发生的准确时刻
     pub return_date: DateTimeData,
+    pub house_name: HouseName,
+    /// 12 宫头黄经
+    pub cusps: Vec<f64>,
+    pub asc: Planet,
+    pub mc: Planet,
+    pub dsc: Planet,
+    pub ic: Planet,
+    /// 七颗行星
+    pub planets: Vec<Planet>,
+    pub part_of_fortune: Planet,
+    /// 行星相位，仅包含四轴、行星间的相位
+    pub aspects: Vec<Aspect>,
+    /// 映点
+    pub antiscoins: Vec<Aspect>,
+    /// 反映点
+    pub contraantiscias: Vec<Aspect>,
+}
+
+impl From<ReturnHoroscope> for Horoscope {
+    /// 返照盘响应转星盘视图模型，复用轮盘 / 相位 / 详情组件：
+    /// 恒星后台不返回（置空），日主星 / 时主星同衍生盘置 None；
+    /// is_diurnal 按太阳是否在地平线上计算——太阳位于第 7–12 宫（黄经自
+    /// DSC cusps[6] 前行至 ASC cusps[0] 的半圆，恰经 MC）为白天盘。
+    fn from(r: ReturnHoroscope) -> Self {
+        let dsc_to_asc = deg_norm(r.cusps[0] - r.cusps[6]);
+        let is_diurnal = r
+            .planets
+            .iter()
+            .find(|p| p.name == PlanetName::Sun)
+            .is_some_and(|sun| deg_norm(sun.long - r.cusps[6]) < dsc_to_asc);
+        Horoscope {
+            house_name: r.house_name,
+            cusps: r.cusps,
+            asc: r.asc,
+            mc: r.mc,
+            dsc: r.dsc,
+            ic: r.ic,
+            part_of_fortune: r.part_of_fortune,
+            planets: r.planets,
+            is_diurnal,
+            planetary_day: None,
+            planetary_hours: None,
+            aspects: r.aspects,
+            antiscoins: r.antiscoins,
+            contraantiscias: r.contraantiscias,
+            fixed_stars: Vec::new(),
+        }
+    }
 }
 
 /// 方向推运的显著星（被推运方）：行星 / 四轴福点，或宫头（1-12）。

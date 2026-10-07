@@ -12,11 +12,10 @@ use reactive_stores::Store;
 
 use crate::components::{
     AlertDialog, ArchiveSelector, DateTimeInput, FormState, FormStateStoreFields, GeoInput,
-    HouseSelect,
+    HouseSelect, ProcessTypeSelect,
 };
 use crate::direction::utils::{
-    ARC_TO_DATE_METHODS, DAILY_DIRECTION_METHODS, DIRECTION_METHODS, DIRECTION_PROCESSES,
-    method_select, process_title, process_value,
+    ARC_TO_DATE_METHODS, DAILY_DIRECTION_METHODS, DIRECTION_METHODS, PROCESS_OPTIONS, method_select,
 };
 use crate::enums::process_name::ProcessName;
 use crate::models::{
@@ -66,11 +65,9 @@ pub(crate) fn ProcessInput() -> impl IntoView {
         house: storage.horo_data().house,
     });
     // 推运参数（对应原版 processData 各字段；缓存里可能是其他推运类型的旧值，
-    // 恢复时钳制到本页支持的三种）
+    // 恢复时钳制到本页支持的六种）
     let process_name = RwSignal::new(match base.process_name {
-        ProcessName::Direction | ProcessName::DailyDirection | ProcessName::SolarArc => {
-            base.process_name
-        }
+        p if PROCESS_OPTIONS.contains(&p) => p,
         _ => ProcessName::Direction,
     });
     let is_solar_return = RwSignal::new(base.is_solar_return);
@@ -150,9 +147,28 @@ pub(crate) fn ProcessInput() -> impl IntoView {
         let path = match process_name.get_untracked() {
             ProcessName::DailyDirection => AppRoute::DailyDirection.path(),
             ProcessName::SolarArc => AppRoute::SolarArc.path(),
+            ProcessName::SolarReturn => AppRoute::ReturnSolar.path(),
+            ProcessName::LunarReturn => AppRoute::ReturnLunar.path(),
+            ProcessName::DailyReturn => AppRoute::ReturnDaily.path(),
             _ => AppRoute::Direction.path(),
         };
         nav(path, NavigateOptions::default());
+    };
+
+    // 日返月亮开关的标签与说明随推运类型变化（对应原版模板的三元标签）
+    let solar_return_label = move || {
+        if process_name.get() == ProcessName::DailyReturn {
+            "日返月返"
+        } else {
+            "日返月亮"
+        }
+    };
+    let solar_return_hint = move || match process_name.get() {
+        ProcessName::LunarReturn => "开启后先求日返返照时刻，再以该时刻计算月返盘",
+        ProcessName::DailyReturn => {
+            "开启后按 日返→月返→每日回归 逐层求取返照时刻，再以该时刻计算每日回归盘"
+        }
+        _ => "开启后按 日返→月返→每日回归 逐层求取返照时刻，再以返照时刻计算方向弧",
     };
 
     view! {
@@ -202,29 +218,7 @@ pub(crate) fn ProcessInput() -> impl IntoView {
                 <div class=form::field>
                     <label>"推运类型"</label>
                     <div class=form::control>
-                        <select
-                            on:change=move |ev| {
-                                let v = event_target_value(&ev);
-                                if let Some(p) =
-                                    DIRECTION_PROCESSES.iter().copied().find(|p| process_value(*p) == v)
-                                {
-                                    process_name.set(p);
-                                }
-                            }
-                        >
-                            {DIRECTION_PROCESSES
-                                .iter()
-                                .copied()
-                                .map(|p| {
-                                    let selected = move || process_name.get() == p;
-                                    view! {
-                                        <option value=process_value(p) selected=selected>
-                                            {process_title(p)}
-                                        </option>
-                                    }
-                                })
-                                .collect::<Vec<_>>()}
-                        </select>
+                        <ProcessTypeSelect process_name/>
                     </div>
                 </div>
                 <DateTimeInput state=process_state/>
@@ -236,14 +230,30 @@ pub(crate) fn ProcessInput() -> impl IntoView {
                     {method_select("换算方式", arc_to_date_method, &ARC_TO_DATE_METHODS)}
                 </Show>
 
-                // 方向弧算法 + 日返月亮：仅每日回归方向弧（对应原版 process.page 182-195、226-240 行）
+                // 方向弧算法：仅每日回归方向弧（对应原版 process.page 226-240 行）
                 <Show
                     when=move || process_name.get() == ProcessName::DailyDirection
                     fallback=|| ()
                 >
                     {method_select("方向弧算法", daily_direction_method, &DAILY_DIRECTION_METHODS)}
+                </Show>
+
+                // 日返月亮 / 日返月返：月返 / 每日回归 / 每日回归方向弧可基于日返
+                // 逐层取返照时刻（对应原版 process.page 182-195 行，每日回归的标签
+                // 为「日返月返」，其余为「日返月亮」）
+                <Show
+                    when=move || {
+                        matches!(
+                            process_name.get(),
+                            ProcessName::DailyDirection
+                                | ProcessName::LunarReturn
+                                | ProcessName::DailyReturn
+                        )
+                    }
+                    fallback=|| ()
+                >
                     <div class=form::field>
-                        <label>"日返月亮"</label>
+                        <label>{solar_return_label}</label>
                         <div class=form::control>
                             <label class=form::toggle>
                                 <input type="checkbox" bind:checked=is_solar_return/>
@@ -251,9 +261,7 @@ pub(crate) fn ProcessInput() -> impl IntoView {
                             </label>
                         </div>
                     </div>
-                    <p class=style::hint>
-                        "开启后按 日返→月返→每日回归 逐层求取返照时刻，再以返照时刻计算方向弧"
-                    </p>
+                    <p class=style::hint>{solar_return_hint}</p>
                 </Show>
 
                 <button class=form::btn_primary on:click=submit>"开始推运"</button>

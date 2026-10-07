@@ -5,7 +5,8 @@
 //! 的日期信号，防抖后重新请求并重绘，不回写快照 / 面板 / localStorage；
 //! 重试按钮同样以当前日期重新请求（对应原版 embedded 组件的错误处理增强）。
 //! 方向推运三类窗口（主向推运 / 每日回归方向弧 / 太阳弧）不经星盘请求，
-//! 直接渲染 DirectionView（自带筛选区与请求链，数据同样取开窗快照）。
+//! 直接渲染 DirectionView（自带筛选区与请求链，数据同样取开窗快照）；
+//! 返照盘三类窗口（日返 / 月返 / 每日回归）同理渲染 ReturnView。
 use std::cell::Cell;
 
 use leptos::prelude::*;
@@ -23,6 +24,7 @@ use crate::enums::process_name::ProcessName;
 use crate::models::data::{HoroData, ProcessData};
 use crate::models::datetime::DateTimeData;
 use crate::models::geo::GeoPosition;
+use crate::return_chart::ReturnView;
 use crate::shared::sleep_ms;
 use crate::storage::HoroStorage;
 use crate::workbench::window::ChartType;
@@ -60,7 +62,7 @@ async fn fetch(
             .await
         }
         // 方向推运三类窗口在 WindowContent 开头提前返回，不会走到这里
-        _ => unreachable!("方向推运窗口已提前返回"),
+        _ => unreachable!("方向推运 / 返照盘窗口已提前返回"),
     }
 }
 
@@ -88,6 +90,26 @@ pub fn WindowContent(
         });
         return view! {
             <DirectionView mode horo=snapshot process on_title/>
+        }
+        .into_any();
+    }
+
+    // 返照盘三类窗口（日返 / 月返 / 每日回归）：渲染返照视图（自带请求链 /
+    // 时间编辑，数据同样取开窗快照）。快照缺失时回落当前缓存值（正常路径下开窗必带）。
+    if chart_type.is_return() {
+        let mode = match chart_type {
+            ChartType::SolarReturn => ProcessName::SolarReturn,
+            ChartType::LunarReturn => ProcessName::LunarReturn,
+            ChartType::DailyReturn => ProcessName::DailyReturn,
+            _ => unreachable!("is_return 已过滤非返照盘类型"),
+        };
+        let process = process.unwrap_or_else(|| {
+            use_context::<HoroStorage>()
+                .expect("HoroStorage 未初始化")
+                .process_data()
+        });
+        return view! {
+            <ReturnView mode horo=snapshot process/>
         }
         .into_any();
     }

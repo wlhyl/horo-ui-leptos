@@ -26,6 +26,12 @@ pub enum AppRoute {
     DailyDirection,
     /// 太阳弧结果页。
     SolarArc,
+    /// 太阳返照（日返）结果页。
+    ReturnSolar,
+    /// 月亮返照（月返）结果页。
+    ReturnLunar,
+    /// 每日回归盘结果页。
+    ReturnDaily,
     /// 用户登录页。
     User,
     /// 清除缓存页。
@@ -51,6 +57,9 @@ impl AppRoute {
             AppRoute::Direction => "/direction",
             AppRoute::DailyDirection => "/daily_direction",
             AppRoute::SolarArc => "/solar_arc",
+            AppRoute::ReturnSolar => "/return/solar",
+            AppRoute::ReturnLunar => "/return/lunar",
+            AppRoute::ReturnDaily => "/return/daily",
             AppRoute::User => "/user",
             AppRoute::Clean => "/clean",
             AppRoute::Power => "/power",
@@ -132,6 +141,13 @@ mod tests {
         assert!(!matches(AppRoute::DailyDirection, "/direction"));
         assert!(!matches(AppRoute::Direction, "/daily_direction"));
 
+        assert!(matches(AppRoute::ReturnSolar, "/return/solar"));
+        assert!(matches(AppRoute::ReturnLunar, "/return/lunar"));
+        assert!(matches(AppRoute::ReturnDaily, "/return/daily"));
+        assert!(!matches(AppRoute::ReturnSolar, "/return"));
+        assert!(!matches(AppRoute::ReturnSolar, "/return/lunar"));
+        assert!(!matches(AppRoute::ReturnLunar, "/return/daily"));
+
         assert!(matches(AppRoute::User, "/user"));
         assert!(!matches(AppRoute::User, "/"));
         assert!(!matches(AppRoute::Home, "/user"));
@@ -159,6 +175,9 @@ mod tests {
             AppRoute::Direction,
             AppRoute::DailyDirection,
             AppRoute::SolarArc,
+            AppRoute::ReturnSolar,
+            AppRoute::ReturnLunar,
+            AppRoute::ReturnDaily,
             AppRoute::User,
             AppRoute::Clean,
             AppRoute::Power,

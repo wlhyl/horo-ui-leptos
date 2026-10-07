@@ -89,29 +89,46 @@ pub(crate) const ALL_SIGNIFICATORS: [PlanetName; 14] = [
     PlanetName::PartOfFortune,
 ];
 
-/// 推运类型下拉的可选项：目前仅迁移方向推运三种（对应原版 processOptions 的子集）。
-pub(crate) const DIRECTION_PROCESSES: [ProcessName; 3] = [
+/// 推运类型下拉的全体可选项：方向推运 + 返照盘（对应原版 processOptions 的子集）。
+pub(crate) const PROCESS_OPTIONS: [ProcessName; 6] = [
     ProcessName::Direction,
     ProcessName::DailyDirection,
     ProcessName::SolarArc,
+    ProcessName::SolarReturn,
+    ProcessName::LunarReturn,
+    ProcessName::DailyReturn,
 ];
 
-/// 推运类型下拉的 value（枚举变体名，即 ProcessName 的序列化名）。
-pub(crate) fn process_value(p: ProcessName) -> &'static str {
-    match p {
-        ProcessName::Direction => "Direction",
-        ProcessName::DailyDirection => "DailyDirection",
-        ProcessName::SolarArc => "SolarArc",
-        _ => "",
-    }
-}
+/// 推运类型的分组显示：方向推运 / 返照盘两组（与工作台「添加星盘」按钮组的
+/// 两条分隔线分组对应，原版 input-panel 的 推运 / 返照 分组）。
+pub(crate) const PROCESS_GROUPS: [(&str, [ProcessName; 3]); 2] = [
+    (
+        "方向推运",
+        [
+            ProcessName::Direction,
+            ProcessName::DailyDirection,
+            ProcessName::SolarArc,
+        ],
+    ),
+    (
+        "返照盘",
+        [
+            ProcessName::SolarReturn,
+            ProcessName::LunarReturn,
+            ProcessName::DailyReturn,
+        ],
+    ),
+];
 
-/// 三种方向推运模式的标题（对应原版 titleForMode）。
+/// 推运模式的标题（对应原版 titleForMode / ProcessName.name）。
 pub(crate) fn process_title(mode: ProcessName) -> &'static str {
     match mode {
         ProcessName::Direction => "主向推运",
         ProcessName::DailyDirection => "每日回归方向弧",
         ProcessName::SolarArc => "太阳弧",
+        ProcessName::SolarReturn => "日返",
+        ProcessName::LunarReturn => "月返",
+        ProcessName::DailyReturn => "每日回归",
         _ => "推运",
     }
 }

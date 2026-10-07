@@ -98,6 +98,15 @@
   gap: 10px;
 }
 
+/* 分组分隔线：把按钮组隔成 命盘 / 方向推运 / 返照盘 三组（与推运类型
+   下拉的 optgroup 分组对应，原版 input-panel 的 推运 / 返照 分组） */
+.chart-divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  margin: 2px 0;
+  background: var(--line);
+}
+
 .chart-btn {
   display: inline-flex;
   align-items: center;

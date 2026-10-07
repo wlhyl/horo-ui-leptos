@@ -95,7 +95,7 @@ pub fn Home() -> impl IntoView {
                         </svg>
                     </div>
                     <div class=style::home_name>"推运"</div>
-                    <div class=style::home_desc>"主向 · 每日回归 · 太阳弧"</div>
+                    <div class=style::home_desc>"方向推运 · 返照盘"</div>
                 </button>
                 <button class=style::home_card on:click=go_event>
                     <div class=style::home_icon>

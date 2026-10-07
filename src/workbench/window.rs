@@ -37,6 +37,12 @@ pub enum ChartType {
     DailyDirection,
     /// 太阳弧（快照取出生数据 + 推运数据）
     SolarArc,
+    /// 日返（快照取出生数据 + 推运数据）
+    SolarReturn,
+    /// 月返（快照取出生数据 + 推运数据）
+    LunarReturn,
+    /// 每日回归盘（快照取出生数据 + 推运数据）
+    DailyReturn,
 }
 
 impl ChartType {
@@ -49,15 +55,31 @@ impl ChartType {
             ChartType::Direction => "主向推运",
             ChartType::DailyDirection => "每日回归方向弧",
             ChartType::SolarArc => "太阳弧",
+            ChartType::SolarReturn => "日返",
+            ChartType::LunarReturn => "月返",
+            ChartType::DailyReturn => "每日回归",
         }
     }
 
-    /// 是否为方向推运类窗口（携带推运数据快照）。
+    /// 是否为方向推运类窗口（DirectionView 渲染）。
     pub fn is_direction(self) -> bool {
         matches!(
             self,
             ChartType::Direction | ChartType::DailyDirection | ChartType::SolarArc
         )
+    }
+
+    /// 是否为返照盘类窗口（ReturnView 渲染）。
+    pub fn is_return(self) -> bool {
+        matches!(
+            self,
+            ChartType::SolarReturn | ChartType::LunarReturn | ChartType::DailyReturn
+        )
+    }
+
+    /// 是否为携带推运数据快照的窗口（方向推运 + 返照盘）。
+    pub fn is_process(self) -> bool {
+        self.is_direction() || self.is_return()
     }
 }
 
@@ -128,8 +150,8 @@ pub struct WorkbenchWindow {
     /// 衍生盘窗口的基准行星（打开时快照，窗口间相互独立；非衍生盘为 None，
     /// 对应原版 WorkbenchWindow.derivedPlanetName）
     pub derived_planet: Option<PlanetName>,
-    /// 方向推运类窗口的推运数据快照（推运时间 / 居住地 / 算法 / 日返月亮；
-    /// 打开时快照，窗口间相互独立；非方向推运为 None）
+    /// 方向推运 / 返照盘类窗口的推运数据快照（推运时间 / 居住地 / 算法 /
+    /// 日返月亮；打开时快照，窗口间相互独立；其余类型为 None）
     pub process: Option<ProcessData>,
 }
 
@@ -215,7 +237,7 @@ impl WindowMgr {
     /// 打开新窗口：级联摆放并夹取到工作区内，打开时快照输入数据。
     /// `work_area` 为工作区尺寸（宽高，原点 0,0）。
     /// 衍生盘窗口经 `derived_planet` 携带基准行星快照（其余类型传 None）；
-    /// 方向推运类窗口经 `process` 携带推运数据快照（其余类型传 None）。
+    /// 方向推运 / 返照盘类窗口经 `process` 携带推运数据快照（其余类型传 None）。
     pub fn open(
         &self,
         chart_type: ChartType,
@@ -269,7 +291,7 @@ impl WindowMgr {
                 snapshot,
                 derived_planet: (chart_type == ChartType::Derived)
                     .then_some(derived_planet.unwrap_or(PlanetName::Sun)),
-                process: chart_type.is_direction().then_some(process).flatten(),
+                process: chart_type.is_process().then_some(process).flatten(),
             })
         });
         self.cascade_index.update(|i| *i += 1);
