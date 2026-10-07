@@ -1,0 +1,317 @@
+/*! 方向推运结果视图样式：页面框架 / 说明 / 筛选面板 / chips / 分段按钮 / 结果表。 */
+
+/* ---------- 独立页框架（同 power 页） ---------- */
+
+.page {
+  min-height: 100%;
+  padding: 16px 16px 32px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.back_btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-1);
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.back_btn:hover {
+  color: var(--gold);
+  border-color: var(--gold-2);
+  transform: translateX(-2px);
+}
+
+.back_btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.title {
+  position: relative;
+  margin: 0;
+  padding-left: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-0);
+  display: flex;
+  align-items: center;
+}
+
+.title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--gold), var(--indigo));
+}
+
+/* ---------- 顶部说明 ---------- */
+
+.intro {
+  margin: 0 0 14px;
+  padding: 10px 14px 10px 30px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--text-1);
+  display: grid;
+  gap: 4px;
+}
+
+/* ---------- 参数 / 筛选面板 ---------- */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+/* 复用星盘时间编辑条（ChartTimeEditor）时收起其自带下边距，行距交给面板 gap */
+.panel [class*='editor'] {
+  margin-bottom: 0;
+}
+
+.btn_row {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn,
+.btn_primary {
+  padding: 9px 22px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text-0);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.btn:hover {
+  border-color: var(--gold-2);
+  color: var(--gold);
+}
+
+.btn_primary {
+  border: none;
+  color: #fff;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.25);
+}
+
+.btn_primary:hover,
+.btn:active,
+.btn_primary:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled,
+.btn_primary:disabled {
+  cursor: default;
+  opacity: 0.6;
+  transform: none;
+}
+
+/* ---------- 多选 chips ---------- */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip,
+.chip_active {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-1);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--gold-2);
+}
+
+.chip_active {
+  border-color: var(--gold);
+  background: rgba(184, 134, 11, 0.12);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* ---------- 弧方向分段按钮 ---------- */
+
+.segment {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.segment_btn,
+.segment_btn_active {
+  padding: 7px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-1);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.segment_btn:hover {
+  color: var(--indigo);
+}
+
+.segment_btn_active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  box-shadow: 0 3px 10px rgba(184, 134, 11, 0.25);
+}
+
+/* ---------- 每日回归时刻横幅 ---------- */
+
+.return_banner {
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px dashed var(--gold-2);
+  border-radius: var(--radius);
+  background: rgba(184, 134, 11, 0.07);
+  color: var(--text-0);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---------- 结果表（同 power 页表格风格） ---------- */
+
+.table_card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.table_scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 520px;
+  font-size: 14px;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 12px 10px;
+  background: linear-gradient(180deg, rgba(79, 91, 213, 0.1), rgba(184, 134, 11, 0.08));
+  color: var(--text-0);
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 9px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.table tbody tr:hover,
+.table tbody tr:active {
+  background: rgba(184, 134, 11, 0.14);
+}
+
+/* 空表占位 */
+.empty {
+  padding: 28px 10px !important;
+  color: var(--text-1);
+  font-size: 13px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* 占星符号强制按文字字形渲染，避免被当彩色 emoji */
+.glyph {
+  font-variant-emoji: text;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-block;
+}
+
+/* 宫头 / 映点等普通文字 */
+.plain {
+  color: var(--text-0);
+}
+
+/* 界内度数小字 */
+.deg {
+  display: inline-block;
+  margin-left: 3px;
+  font-size: 11px;
+  font-variant-emoji: normal;
+  color: var(--text-1);
+  vertical-align: middle;
+}

@@ -1,11 +1,13 @@
 //! 应用外壳：响应式布局、顶部应用栏与路由。
 use leptos::prelude::*;
+use leptos_router::NavigateOptions;
 use leptos_router::components::{Route, Router, Routes};
 use leptos_router::hooks::{use_location, use_navigate};
-use leptos_router::NavigateOptions;
 
 use crate::auth::AuthService;
 use crate::clean;
+use crate::direction;
+use crate::enums::process_name::ProcessName;
 use crate::home::Home;
 use crate::native;
 use crate::power;
@@ -17,7 +19,11 @@ use crate::workbench;
 // 作用域样式：src/app.module.css -> 类名形如 `app-shell-a1b2c3d`
 stylance::import_crate_style!(style, "src/app.module.css");
 // 404 兜底文案复用共享的反馈样式
-stylance::import_crate_style!(#[allow(dead_code)] feedback, "src/shared/feedback.module.css");
+stylance::import_crate_style!(
+    #[allow(dead_code)]
+    feedback,
+    "src/shared/feedback.module.css"
+);
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -47,6 +53,10 @@ pub fn App() -> impl IntoView {
                         <Route path=AppRoute::NativeChart view=move || view! { <native::Chart mode=native::ChartMode::Native/> }/>
                         <Route path=AppRoute::EventChart view=move || view! { <native::Chart mode=native::ChartMode::Event/> }/>
                         <Route path=AppRoute::DerivedChart view=move || view! { <native::Chart mode=native::ChartMode::Derived/> }/>
+                        <Route path=AppRoute::Process view=move || view! { <direction::ProcessInput/> }/>
+                        <Route path=AppRoute::Direction view=move || view! { <direction::DirectionPage mode=ProcessName::Direction/> }/>
+                        <Route path=AppRoute::DailyDirection view=move || view! { <direction::DirectionPage mode=ProcessName::DailyDirection/> }/>
+                        <Route path=AppRoute::SolarArc view=move || view! { <direction::DirectionPage mode=ProcessName::SolarArc/> }/>
                         <Route path=AppRoute::User view=move || view! { <user::User/> }/>
                         <Route path=AppRoute::Clean view=move || view! { <clean::Clean/> }/>
                         <Route path=AppRoute::Power view=move || view! { <power::Power/> }/>
@@ -63,9 +73,7 @@ pub fn App() -> impl IntoView {
 #[component]
 fn MainShell(children: Children) -> impl IntoView {
     let location = use_location();
-    let is_wide = Memo::new(move |_| {
-        location.pathname.get() == AppRoute::Workbench.path()
-    });
+    let is_wide = Memo::new(move |_| location.pathname.get() == AppRoute::Workbench.path());
 
     view! {
         <main class=move || if is_wide.get() { style::app_main_wide } else { style::app_main }>

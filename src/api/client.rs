@@ -1,10 +1,14 @@
 //! 后台 HTTP 调用封装（gloo-net，wasm fetch）。
 
 use crate::api::request::{
-    DerivedHoroRequest, HoroNativeRequest, HoroscopeRecordRequest, LoginRequest,
+    DailyDirectionRequest, DerivedHoroRequest, DirectionRequest, HoroNativeRequest,
+    HoroscopeRecordRequest, LoginRequest, ReturnRequest, SolarArcRequest,
     UpdateHoroscopeRecordRequest,
 };
-use crate::api::response::{Horoscope, HoroscopeRecord, LocationResponse, PageResponser, TokenResponse};
+use crate::api::response::{
+    Direction, Horoscope, HoroscopeRecord, LocationResponse, PageResponser, ReturnHoroscope,
+    TokenResponse,
+};
 use crate::config::{ADMIN_API_BASE_URL, API_BASE_URL};
 use gloo_net::http::Request;
 use serde::Deserialize;
@@ -46,6 +50,86 @@ pub async fn post_derived(req: &DerivedHoroRequest) -> Result<Horoscope, String>
         .map_err(|e| format!("解析响应失败：{e}"))
 }
 
+// ---------------------------------------------------------------------------
+// 方向推运（horo-api /api/process/*，与原版 horo-ui 共用同一批接口）
+// ---------------------------------------------------------------------------
+
+/// 调用 POST /api/process/directions 计算主向推运表。
+pub async fn post_direction(req: &DirectionRequest) -> Result<Vec<Direction>, String> {
+    let url = format!("{API_BASE_URL}/api/process/directions");
+    Request::post(&url)
+        .header("Content-Type", "application/json")
+        .json(req)
+        .map_err(|e| format!("序列化失败：{e}"))?
+        .send()
+        .await
+        .map_err(|e| format!("网络错误：{e}"))?
+        .json::<Vec<Direction>>()
+        .await
+        .map_err(|e| format!("解析响应失败：{e}"))
+}
+
+/// 调用 POST /api/process/solar_arc 计算太阳弧推运表。
+pub async fn post_solar_arc(req: &SolarArcRequest) -> Result<Vec<Direction>, String> {
+    let url = format!("{API_BASE_URL}/api/process/solar_arc");
+    Request::post(&url)
+        .header("Content-Type", "application/json")
+        .json(req)
+        .map_err(|e| format!("序列化失败：{e}"))?
+        .send()
+        .await
+        .map_err(|e| format!("网络错误：{e}"))?
+        .json::<Vec<Direction>>()
+        .await
+        .map_err(|e| format!("解析响应失败：{e}"))
+}
+
+/// 调用 POST /api/process/daily_directions 计算每日回归方向弧表
+/// （native_date 传每日返照时刻、st 固定 false）。
+pub async fn post_daily_direction(req: &DailyDirectionRequest) -> Result<Vec<Direction>, String> {
+    let url = format!("{API_BASE_URL}/api/process/daily_directions");
+    Request::post(&url)
+        .header("Content-Type", "application/json")
+        .json(req)
+        .map_err(|e| format!("序列化失败：{e}"))?
+        .send()
+        .await
+        .map_err(|e| format!("网络错误：{e}"))?
+        .json::<Vec<Direction>>()
+        .await
+        .map_err(|e| format!("解析响应失败：{e}"))
+}
+
+/// 调用 POST /api/process/return/solar 计算太阳返照盘（取返照时刻）。
+pub async fn post_solar_return(req: &ReturnRequest) -> Result<ReturnHoroscope, String> {
+    post_return("solar", req).await
+}
+
+/// 调用 POST /api/process/return/lunar 计算月亮返照盘（取返照时刻）。
+pub async fn post_lunar_return(req: &ReturnRequest) -> Result<ReturnHoroscope, String> {
+    post_return("lunar", req).await
+}
+
+/// 调用 POST /api/process/return/daily 计算每日回归盘（取返照时刻）。
+pub async fn post_daily_return(req: &ReturnRequest) -> Result<ReturnHoroscope, String> {
+    post_return("daily", req).await
+}
+
+/// 返照接口公共请求逻辑：URL 仅最后一段不同。
+async fn post_return(kind: &str, req: &ReturnRequest) -> Result<ReturnHoroscope, String> {
+    let url = format!("{API_BASE_URL}/api/process/return/{kind}");
+    Request::post(&url)
+        .header("Content-Type", "application/json")
+        .json(req)
+        .map_err(|e| format!("序列化失败：{e}"))?
+        .send()
+        .await
+        .map_err(|e| format!("网络错误：{e}"))?
+        .json::<ReturnHoroscope>()
+        .await
+        .map_err(|e| format!("解析响应失败：{e}"))
+}
+
 /// 调用 POST /api/horo-admin/login 登录，成功返回 JWT token。
 /// 错误消息按状态码映射（404 用户不存在 / 403 密码错误）。
 pub async fn post_login(req: &LoginRequest) -> Result<String, String> {
@@ -73,7 +157,9 @@ pub async fn post_login(req: &LoginRequest) -> Result<String, String> {
 /// 404（未找到地名）/ 403（token 失效）映射为后台返回的 error 消息。
 pub async fn get_location_search(q: &str, token: &str) -> Result<Vec<LocationResponse>, String> {
     // 中文地名必须 URL 编码
-    let q = js_sys::encode_uri_component(q).as_string().unwrap_or_default();
+    let q = js_sys::encode_uri_component(q)
+        .as_string()
+        .unwrap_or_default();
     let url = format!("{ADMIN_API_BASE_URL}/api/horo-admin/location_search?q={q}");
     let res = Request::get(&url)
         .header("token", token)
@@ -115,7 +201,9 @@ pub async fn search_horoscopes(
     token: &str,
 ) -> Result<PageResponser<HoroscopeRecord>, String> {
     // 姓名可能含中文，必须 URL 编码
-    let name = js_sys::encode_uri_component(name).as_string().unwrap_or_default();
+    let name = js_sys::encode_uri_component(name)
+        .as_string()
+        .unwrap_or_default();
     let url = format!(
         "{ADMIN_API_BASE_URL}/api/horo-admin/horoscopes/search?page={page}&size={size}&name={name}"
     );

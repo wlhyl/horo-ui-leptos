@@ -8,6 +8,7 @@ use crate::enums::{
     house::HouseName,
     planet::{PlanetName, PlanetSpeedState},
 };
+use crate::models::datetime::DateTimeData;
 
 /// 登录成功响应（horo-storage-api）：JWT token。
 #[derive(Deserialize)]
@@ -130,4 +131,90 @@ pub struct Horoscope {
     pub antiscoins: Vec<Aspect>,
     pub contraantiscias: Vec<Aspect>,
     pub fixed_stars: Vec<FixedStar>,
+}
+
+/// 返照盘响应（horo-api /api/process/return/*），仅声明前端需要的字段。
+#[derive(Clone, Copy, PartialEq, Deserialize)]
+pub struct ReturnHoroscope {
+    /// 返照发生的准确时刻
+    pub return_date: DateTimeData,
+}
+
+/// 方向推运的显著星（被推运方）：行星 / 四轴福点，或宫头（1-12）。
+/// 后端按「单键对象」序列化（如 {"planet":"Sun"} / {"cusp":3}），故用 untagged。
+#[derive(Clone, Copy, PartialEq, Deserialize)]
+#[serde(untagged)]
+pub enum Significator {
+    Planet { planet: PlanetName },
+    Cusp { cusp: u8 },
+}
+
+/// 方向推运的承诺星（触发方）13 种形态（对应原版 Promittor）。
+/// 后端按「单键对象」序列化，键为变体名（部分 camelCase），故用 untagged。
+#[derive(Clone, Copy, PartialEq, Deserialize)]
+#[serde(untagged)]
+pub enum Promittor {
+    Conjunction {
+        conjunction: PlanetName,
+    },
+    SinisterTrine {
+        #[serde(rename = "sinisterTrine")]
+        sinister_trine: PlanetName,
+    },
+    DexterTrine {
+        #[serde(rename = "dexterTrine")]
+        dexter_trine: PlanetName,
+    },
+    SinisterSextile {
+        #[serde(rename = "sinisterSextile")]
+        sinister_sextile: PlanetName,
+    },
+    DexterSextile {
+        #[serde(rename = "dexterSextile")]
+        dexter_sextile: PlanetName,
+    },
+    SinisterSquare {
+        #[serde(rename = "sinisterSquare")]
+        sinister_square: PlanetName,
+    },
+    DexterSquare {
+        #[serde(rename = "dexterSquare")]
+        dexter_square: PlanetName,
+    },
+    Opposition {
+        opposition: PlanetName,
+    },
+    /// 界：界主星 + 界终点黄经
+    Term {
+        term: (PlanetName, f64),
+    },
+    /// 映点
+    Antiscoins {
+        antiscoins: PlanetName,
+    },
+    /// 反映点
+    Contraantiscias {
+        contraantiscias: PlanetName,
+    },
+    /// 宫头（1-12）
+    Cusp {
+        cusp: u8,
+    },
+    /// 星座（0-11 黄道序号）
+    Sign {
+        sign: u8,
+    },
+}
+
+/// 一条方向推运记录（对应原版 Direction）。
+#[derive(Clone, Copy, PartialEq, Deserialize)]
+pub struct Direction {
+    /// 显著星（主向推运的主向星为 MC）
+    pub significator: Significator,
+    /// 承诺星
+    pub promittor: Promittor,
+    /// 方向弧度数，负值为反向
+    pub arc: f64,
+    /// 弧转日期后的推运时间（响应侧 HoroDateTime 无 st 字段，反序列化缺省 false）
+    pub date: DateTimeData,
 }

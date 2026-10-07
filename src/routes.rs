@@ -12,12 +12,20 @@ pub enum AppRoute {
     Event,
     /// 衍生盘输入页。
     Derived,
+    /// 推运输入页（推运类型选择主向推运 / 每日回归方向弧 / 太阳弧）。
+    Process,
     /// 本命星盘结果页。
     NativeChart,
     /// 天象盘结果页。
     EventChart,
     /// 衍生盘结果页。
     DerivedChart,
+    /// 主向推运结果页。
+    Direction,
+    /// 每日回归方向弧结果页。
+    DailyDirection,
+    /// 太阳弧结果页。
+    SolarArc,
     /// 用户登录页。
     User,
     /// 清除缓存页。
@@ -36,9 +44,13 @@ impl AppRoute {
             AppRoute::Native => "/native",
             AppRoute::Event => "/event",
             AppRoute::Derived => "/derived",
+            AppRoute::Process => "/process",
             AppRoute::NativeChart => "/native/chart",
             AppRoute::EventChart => "/event/chart",
             AppRoute::DerivedChart => "/derived/chart",
+            AppRoute::Direction => "/direction",
+            AppRoute::DailyDirection => "/daily_direction",
+            AppRoute::SolarArc => "/solar_arc",
             AppRoute::User => "/user",
             AppRoute::Clean => "/clean",
             AppRoute::Power => "/power",
@@ -112,6 +124,14 @@ mod tests {
         assert!(!matches(AppRoute::NativeChart, "/derived/chart"));
         assert!(!matches(AppRoute::DerivedChart, "/native/chart"));
 
+        assert!(matches(AppRoute::Process, "/process"));
+        assert!(!matches(AppRoute::Direction, "/process"));
+        assert!(matches(AppRoute::Direction, "/direction"));
+        assert!(matches(AppRoute::DailyDirection, "/daily_direction"));
+        assert!(matches(AppRoute::SolarArc, "/solar_arc"));
+        assert!(!matches(AppRoute::DailyDirection, "/direction"));
+        assert!(!matches(AppRoute::Direction, "/daily_direction"));
+
         assert!(matches(AppRoute::User, "/user"));
         assert!(!matches(AppRoute::User, "/"));
         assert!(!matches(AppRoute::Home, "/user"));
@@ -132,9 +152,13 @@ mod tests {
             AppRoute::Native,
             AppRoute::Event,
             AppRoute::Derived,
+            AppRoute::Process,
             AppRoute::NativeChart,
             AppRoute::EventChart,
             AppRoute::DerivedChart,
+            AppRoute::Direction,
+            AppRoute::DailyDirection,
+            AppRoute::SolarArc,
             AppRoute::User,
             AppRoute::Clean,
             AppRoute::Power,

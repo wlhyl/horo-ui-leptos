@@ -72,8 +72,8 @@ impl From<&FormState> for HoroData {
 }
 
 impl FormState {
-    /// 汇总日期时间字段（转换回 HoroData 用）。
-    fn date(&self) -> DateTimeData {
+    /// 汇总日期时间字段（转换回 HoroData / ProcessData 用）。
+    pub(crate) fn date(&self) -> DateTimeData {
         DateTimeData {
             year: self.year,
             month: self.month,

@@ -8,3 +8,14 @@ pub(crate) enum DailyDirectionMethod {
     /// 黄道向运风格（主向推运 SemiArc 算法）
     SemiArcZodiacal,
 }
+
+/// 用户面向的展示名（下拉框选项），对齐原版 nameMap。
+impl std::fmt::Display for DailyDirectionMethod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            DailyDirectionMethod::SolarArc => "太阳弧风格",
+            DailyDirectionMethod::SemiArcZodiacal => "黄道向运风格",
+        };
+        f.write_str(s)
+    }
+}

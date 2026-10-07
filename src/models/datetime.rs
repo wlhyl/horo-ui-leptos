@@ -16,7 +16,9 @@ pub(crate) struct DateTimeData {
     pub(crate) second: u8,
     /// 时区，东为正、西为负
     pub(crate) tz: f64,
-    /// 夏令时
+    /// 夏令时。响应侧的 HoroDateTime 不含此字段（仅请求契约 DateRequest 需要），
+    /// 故反序列化缺省为 false，同一结构可承接响应日期（方向推运表 / 返照时刻）。
+    #[serde(default)]
     pub(crate) st: bool,
 }
 

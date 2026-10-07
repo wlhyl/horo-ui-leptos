@@ -2,6 +2,8 @@
 //!
 //! 地名可直接输入并随表单提交缓存；点击「搜索」或回车调用后台
 //! location_search 查询，从结果列表点选后回填地名与经纬度。
+//! `collapsible` 为 true 时（方向推运页）地名常显，经度 / 纬度默认收起，
+//! 点「显示经纬度」展开；其余页面两输入框常显。
 use leptos::prelude::*;
 use reactive_stores::Store;
 use wasm_bindgen_futures::spawn_local;
@@ -13,7 +15,11 @@ use crate::components::{FormState, FormStateStoreFields};
 
 // 作用域样式：src/components/geo_input/geo_input.module.css
 stylance::import_crate_style!(style, "src/components/geo_input/geo_input.module.css");
-stylance::import_crate_style!(#[allow(dead_code)] form, "src/shared/form.module.css");
+stylance::import_crate_style!(
+    #[allow(dead_code)]
+    form,
+    "src/shared/form.module.css"
+);
 stylance::import_crate_style!(
     #[allow(dead_code)]
     feedback,
@@ -21,12 +27,17 @@ stylance::import_crate_style!(
 );
 
 #[component]
-pub fn GeoInput(state: Store<FormState>) -> impl IntoView {
+pub fn GeoInput(
+    state: Store<FormState>,
+    #[prop(default = false)] collapsible: bool,
+) -> impl IntoView {
     let auth = use_context::<AuthService>().expect("AuthService 未初始化");
 
     let querying = RwSignal::new(false);
     let locations = RwSignal::new(Vec::<LocationResponse>::new());
     let search_err = RwSignal::new(String::new());
+    // 经纬度折叠开关：collapsible 时默认收起，否则恒展开
+    let show_lat_long = RwSignal::new(!collapsible);
 
     // 搜索地名：请求中禁用重复提交，结果与错误互斥展示
     let search = move || {
@@ -122,38 +133,54 @@ pub fn GeoInput(state: Store<FormState>) -> impl IntoView {
                 .then(|| view! { <div class=feedback::error>{move || search_err.get()}</div> })
         }}
 
-        <div class=form::field>
-            <label>"经度"</label>
-            <div class=form::control>
-                <input
-                    type="number"
-                    step="0.0001"
-                    placeholder="东经为正"
-                    prop:value=move || state.long().get().to_string()
-                    on:input=move |ev| {
-                        if let Ok(v) = event_target_value(&ev).parse() {
-                            state.long().set(v);
-                        }
-                    }
-                />
-            </div>
-        </div>
+        // 经纬度折叠开关：仅 collapsible 时显示（对应原版 showGeoInput 的「显示经纬度」按钮）
+        {move || {
+            collapsible.then(|| {
+                view! {
+                    <button
+                        class=style::geo_toggle
+                        on:click=move |_| show_lat_long.update(|v| *v = !*v)
+                    >
+                        {move || if show_lat_long.get() { "隐藏经纬度" } else { "显示经纬度" }}
+                    </button>
+                }
+            })
+        }}
 
-        <div class=form::field>
-            <label>"纬度"</label>
-            <div class=form::control>
-                <input
-                    type="number"
-                    step="0.0001"
-                    placeholder="北纬为正"
-                    prop:value=move || state.lat().get().to_string()
-                    on:input=move |ev| {
-                        if let Ok(v) = event_target_value(&ev).parse() {
-                            state.lat().set(v);
+        <Show when=move || show_lat_long.get() fallback=|| ()>
+            <div class=form::field>
+                <label>"经度"</label>
+                <div class=form::control>
+                    <input
+                        type="number"
+                        step="0.0001"
+                        placeholder="东经为正"
+                        prop:value=move || state.long().get().to_string()
+                        on:input=move |ev| {
+                            if let Ok(v) = event_target_value(&ev).parse() {
+                                state.long().set(v);
+                            }
                         }
-                    }
-                />
+                    />
+                </div>
             </div>
-        </div>
+
+            <div class=form::field>
+                <label>"纬度"</label>
+                <div class=form::control>
+                    <input
+                        type="number"
+                        step="0.0001"
+                        placeholder="北纬为正"
+                        prop:value=move || state.lat().get().to_string()
+                        on:input=move |ev| {
+                            if let Ok(v) = event_target_value(&ev).parse() {
+                                state.lat().set(v);
+                            }
+                        }
+                    />
+                </div>
+            </div>
+        </Show>
     }
 }

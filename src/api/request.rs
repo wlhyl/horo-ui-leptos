@@ -6,7 +6,10 @@ use serde::Serialize;
 
 use crate::{
     api::response::ChartType,
-    enums::{house::HouseName, planet::PlanetName},
+    enums::{
+        arc_to_date_method::ArcToDateMethod, daily_direction_method::DailyDirectionMethod,
+        direction_method::DirectionMethod, house::HouseName, planet::PlanetName,
+    },
     models::datetime::DateTimeData,
     models::geo::GeoPosition,
 };
@@ -27,6 +30,52 @@ pub struct DerivedHoroRequest {
     pub house: HouseName,
     /// 衍生盘的基准行星
     pub planet_name: PlanetName,
+}
+
+/// 主向推运请求体（对应原版 DirectionRequest）。
+#[derive(Clone, Copy, Serialize)]
+pub struct DirectionRequest {
+    /// 出生时间
+    pub native_date: DateTimeData,
+    pub geo: GeoPosition,
+    /// 主限法算法
+    pub method: DirectionMethod,
+    /// 弧转日期换算方式
+    pub arc_to_date_method: ArcToDateMethod,
+    pub house: HouseName,
+}
+
+/// 太阳弧推运请求体（对应原版 SolarArcRequest）。
+#[derive(Clone, Copy, Serialize)]
+pub struct SolarArcRequest {
+    /// 出生时间
+    pub native_date: DateTimeData,
+    pub geo: GeoPosition,
+    pub house: HouseName,
+}
+
+/// 每日回归方向弧请求体（对应原版 DailyDirectionRequest）：
+/// 以每日返照时刻为本命时间再算方向弧。
+#[derive(Clone, Copy, Serialize)]
+pub struct DailyDirectionRequest {
+    /// 每日回归时间（视为本命时间）
+    pub native_date: DateTimeData,
+    pub geo: GeoPosition,
+    /// 方向弧算法
+    pub method: DailyDirectionMethod,
+    pub house: HouseName,
+}
+
+/// 返照盘请求体（对应原版 ReturnRequest）：太阳 / 月亮 / 每日回归共用。
+#[derive(Clone, Copy, Serialize)]
+pub struct ReturnRequest {
+    /// 出生时间
+    pub native_date: DateTimeData,
+    /// 推运时间
+    pub process_date: DateTimeData,
+    /// 居住地大地经纬度
+    pub geo: GeoPosition,
+    pub house: HouseName,
 }
 
 /// 登录请求体（horo-storage-api：name/password 均要求非空）。

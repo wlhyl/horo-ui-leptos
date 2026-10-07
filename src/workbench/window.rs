@@ -4,7 +4,7 @@
 use leptos::prelude::*;
 
 use crate::enums::planet::PlanetName;
-use crate::models::data::HoroData;
+use crate::models::data::{HoroData, ProcessData};
 use crate::models::datetime::DateTimeData;
 use crate::render::glyphs::planet_glyph;
 
@@ -21,7 +21,7 @@ const CASCADE_STEPS: u32 = 8;
 /// 窗口与工作区边缘的最小留白。
 const MARGIN: f64 = 10.0;
 
-/// 窗口可打开的星盘类型。后续接入推运盘时在此扩展，
+/// 窗口可打开的星盘类型。后续接入其他推运盘时在此扩展，
 /// 并在 window_content 中补充对应的请求与渲染分支。
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ChartType {
@@ -31,6 +31,12 @@ pub enum ChartType {
     Event,
     /// 衍生盘（快照取出生数据 + 基准行星，行星斜升为中天）
     Derived,
+    /// 主向推运（快照取出生数据 + 推运数据）
+    Direction,
+    /// 每日回归方向弧（快照取出生数据 + 推运数据）
+    DailyDirection,
+    /// 太阳弧（快照取出生数据 + 推运数据）
+    SolarArc,
 }
 
 impl ChartType {
@@ -40,7 +46,18 @@ impl ChartType {
             ChartType::Native => "本命盘",
             ChartType::Event => "天象盘",
             ChartType::Derived => "衍生盘",
+            ChartType::Direction => "主向推运",
+            ChartType::DailyDirection => "每日回归方向弧",
+            ChartType::SolarArc => "太阳弧",
         }
+    }
+
+    /// 是否为方向推运类窗口（携带推运数据快照）。
+    pub fn is_direction(self) -> bool {
+        matches!(
+            self,
+            ChartType::Direction | ChartType::DailyDirection | ChartType::SolarArc
+        )
     }
 }
 
@@ -111,10 +128,13 @@ pub struct WorkbenchWindow {
     /// 衍生盘窗口的基准行星（打开时快照，窗口间相互独立；非衍生盘为 None，
     /// 对应原版 WorkbenchWindow.derivedPlanetName）
     pub derived_planet: Option<PlanetName>,
+    /// 方向推运类窗口的推运数据快照（推运时间 / 居住地 / 算法 / 日返月亮；
+    /// 打开时快照，窗口间相互独立；非方向推运为 None）
+    pub process: Option<ProcessData>,
 }
 
 /// 日期摘要："2000-01-01 12:00"，拼进窗口标题。
-fn date_summary(date: &DateTimeData) -> String {
+pub(crate) fn date_summary(date: &DateTimeData) -> String {
     format!(
         "{:04}-{:02}-{:02} {:02}:{:02}",
         date.year, date.month, date.day, date.hour, date.minute
@@ -185,15 +205,24 @@ impl WindowMgr {
             .with(|wins| wins.iter().find(|w| w.id == id).map(|w| w.z_index))
     }
 
+    /// 读取窗口当前标题（方向推运窗口选中显著星后标题变化，
+    /// `For` 的 key 复用不重渲染 children，窗口框架组件内部用 Memo 调此方法）。
+    pub fn title_of(&self, id: u64) -> Option<String> {
+        self.windows
+            .with(|wins| wins.iter().find(|w| w.id == id).map(|w| w.title.clone()))
+    }
+
     /// 打开新窗口：级联摆放并夹取到工作区内，打开时快照输入数据。
     /// `work_area` 为工作区尺寸（宽高，原点 0,0）。
-    /// 衍生盘窗口经 `derived_planet` 携带基准行星快照（其余类型传 None）。
+    /// 衍生盘窗口经 `derived_planet` 携带基准行星快照（其余类型传 None）；
+    /// 方向推运类窗口经 `process` 携带推运数据快照（其余类型传 None）。
     pub fn open(
         &self,
         chart_type: ChartType,
         snapshot: HoroData,
         work_area: WindowRect,
         derived_planet: Option<PlanetName>,
+        process: Option<ProcessData>,
     ) {
         let offset = (self.cascade_index.get_untracked() % CASCADE_STEPS) as f64 * CASCADE_OFFSET;
         // 默认尺寸按工作区收紧（宽高都裁进工作区，而非只贴回 x/y）
@@ -240,9 +269,19 @@ impl WindowMgr {
                 snapshot,
                 derived_planet: (chart_type == ChartType::Derived)
                     .then_some(derived_planet.unwrap_or(PlanetName::Sun)),
+                process: chart_type.is_direction().then_some(process).flatten(),
             })
         });
         self.cascade_index.update(|i| *i += 1);
+    }
+
+    /// 更新窗口标题（方向推运窗口选中恰一个显著星时附加该星）。
+    pub fn update_title(&self, id: u64, title: String) {
+        self.windows.update(|wins| {
+            if let Some(w) = wins.iter_mut().find(|w| w.id == id) {
+                w.title = title;
+            }
+        });
     }
 
     /// 关闭窗口（从列表移除，释放内容状态）。
@@ -253,12 +292,11 @@ impl WindowMgr {
     /// 窗口置顶（点击 / 拖拽标题栏 / 恢复时调用）。
     pub fn focus(&self, id: u64) {
         let z = self.next_z();
-        self.windows
-            .update(|wins| {
-                if let Some(w) = wins.iter_mut().find(|w| w.id == id) {
-                    w.z_index = z;
-                }
-            });
+        self.windows.update(|wins| {
+            if let Some(w) = wins.iter_mut().find(|w| w.id == id) {
+                w.z_index = z;
+            }
+        });
     }
 
     pub fn minimize(&self, id: u64) {
@@ -317,13 +355,11 @@ impl WindowMgr {
 
     /// 窗口列表点击切换：不可见则恢复，可见则聚焦。
     pub fn activate(&self, id: u64) {
-        let need_restore = self
-            .windows
-            .with_untracked(|wins| {
-                wins.iter()
-                    .find(|w| w.id == id)
-                    .is_some_and(|w| !w.state.is_visible())
-            });
+        let need_restore = self.windows.with_untracked(|wins| {
+            wins.iter()
+                .find(|w| w.id == id)
+                .is_some_and(|w| !w.state.is_visible())
+        });
         if need_restore {
             self.restore(id);
         } else {

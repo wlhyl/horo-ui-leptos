@@ -1,0 +1,32 @@
+/*! 推运输入页样式：标题行 / 分组小标题 / 布局网格 / 提示。 */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.form_grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+/* 分组小标题：竖线强调条（同 power 页标题风格） */
+.section_title {
+  margin: 10px 0 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--gold);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-0);
+  line-height: 1.4;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-1);
+}

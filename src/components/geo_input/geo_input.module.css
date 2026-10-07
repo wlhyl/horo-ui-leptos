@@ -79,3 +79,24 @@
     grid-column: 1 / -1;
   }
 }
+
+/* 经纬度折叠按钮（collapsible 时显示）：小型文字按钮，左对齐
+   （对应原版 fill="clear" 的小按钮） */
+.geo-toggle {
+  justify-self: start;
+  padding: 4px 10px;
+  margin-left: 2px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--indigo);
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.geo-toggle:hover {
+  color: var(--violet);
+  background: rgba(79, 91, 213, 0.08);
+}

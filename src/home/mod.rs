@@ -1,7 +1,7 @@
 //! 入口页：选择进入本命星盘或天象盘。
 use leptos::prelude::*;
-use leptos_router::hooks::use_navigate;
 use leptos_router::NavigateOptions;
+use leptos_router::hooks::use_navigate;
 
 use crate::routes::AppRoute;
 
@@ -29,6 +29,12 @@ pub fn Home() -> impl IntoView {
         let nav = nav.clone();
         move |_| {
             nav(AppRoute::Derived.path(), NavigateOptions::default());
+        }
+    };
+    let go_process = {
+        let nav = nav.clone();
+        move |_| {
+            nav(AppRoute::Process.path(), NavigateOptions::default());
         }
     };
     let go_clean = {
@@ -75,6 +81,21 @@ pub fn Home() -> impl IntoView {
                     </div>
                     <div class=style::home_name>"本命盘"</div>
                     <div class=style::home_desc>"出生时间 · 出生地点"</div>
+                </button>
+                // 推运入口：主向推运 / 每日回归方向弧 / 太阳弧（对应原版推运菜单）
+                <button class=style::home_card on:click=go_process>
+                    <div class=style::home_icon>
+                        // 沙漏轮廓，象征时间维度上的推进
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 3h12"/>
+                            <path d="M6 21h12"/>
+                            <path d="M7 3v3a5 5 0 0 0 5 5 5 5 0 0 0 5-5V3"/>
+                            <path d="M7 21v-3a5 5 0 0 1 5-5 5 5 0 0 1 5 5v3"/>
+                        </svg>
+                    </div>
+                    <div class=style::home_name>"推运"</div>
+                    <div class=style::home_desc>"主向 · 每日回归 · 太阳弧"</div>
                 </button>
                 <button class=style::home_card on:click=go_event>
                     <div class=style::home_icon>

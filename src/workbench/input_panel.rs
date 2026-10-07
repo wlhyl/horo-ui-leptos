@@ -12,7 +12,12 @@ use crate::components::{
     AlertDialog, ArchiveSelector, DateTimeInput, FormState, FormStateStoreFields, GeoInput,
     HouseSelect,
 };
+use crate::direction::utils::{
+    ARC_TO_DATE_METHODS, DAILY_DIRECTION_METHODS, DIRECTION_METHODS, DIRECTION_PROCESSES,
+    method_select, process_title, process_value,
+};
 use crate::enums::planet::TRADITIONAL_PLANETS;
+use crate::enums::process_name::ProcessName;
 use crate::models::datetime::DateTimeData;
 use crate::render::glyphs::planet_glyph;
 use crate::storage::HoroStorage;
@@ -38,7 +43,80 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
     // 分节折叠
     let show_native = RwSignal::new(true);
     let show_derived = RwSignal::new(false);
+    let show_process = RwSignal::new(false);
     let show_event = RwSignal::new(false);
+
+    // —— 推运数据（对应原版 input-panel 的 processData 节）：日期 / 居住地共用
+    // FormState 作编辑载体，推运类型 / 算法 / 日返月亮为独立信号，实时写回缓存 ——
+    let base = storage.process_data();
+    let process_state: Store<FormState> = Store::new(FormState {
+        id: 0,
+        name: String::new(),
+        sex: true,
+        year: base.date.year,
+        month: base.date.month,
+        day: base.date.day,
+        hour: base.date.hour,
+        minute: base.date.minute,
+        second: base.date.second,
+        tz: base.date.tz,
+        st: base.date.st,
+        geo_name: base.geo_name.clone(),
+        long: base.geo.long,
+        lat: base.geo.lat,
+        house: storage.horo_data().house,
+    });
+    // 缓存里的推运类型可能是其他推运盘的旧值，恢复时钳制到本面板支持的三种
+    let process_name = RwSignal::new(match base.process_name {
+        ProcessName::Direction | ProcessName::DailyDirection | ProcessName::SolarArc => {
+            base.process_name
+        }
+        _ => ProcessName::Direction,
+    });
+    let is_solar_return = RwSignal::new(base.is_solar_return);
+    let direction_method = RwSignal::new(base.direction_method);
+    let arc_to_date_method = RwSignal::new(base.arc_to_date_method);
+    let daily_direction_method = RwSignal::new(base.daily_direction_method);
+    // 其余推运类型的算法字段本面板不编辑，保持缓存原值
+    let preserved = StoredValue::new((
+        base.profection_arc_to_date_method,
+        base.secondary_progression_method,
+        base.lunar_day_profection_method,
+    ));
+
+    // 推运数据实时写回本地缓存（对应原版 onProcessDataChange）；Effect 首次运行
+    // 会把恢复值原样写回一次，无副作用。
+    {
+        let storage = storage;
+        Effect::new(move |_| {
+            let process = crate::models::data::ProcessData {
+                date: DateTimeData {
+                    year: process_state.year().get(),
+                    month: process_state.month().get(),
+                    day: process_state.day().get(),
+                    hour: process_state.hour().get(),
+                    minute: process_state.minute().get(),
+                    second: process_state.second().get(),
+                    tz: process_state.tz().get(),
+                    st: process_state.st().get(),
+                },
+                geo_name: process_state.geo_name().get(),
+                geo: crate::models::geo::GeoPosition {
+                    long: process_state.long().get(),
+                    lat: process_state.lat().get(),
+                },
+                process_name: process_name.get(),
+                is_solar_return: is_solar_return.get(),
+                direction_method: direction_method.get(),
+                arc_to_date_method: arc_to_date_method.get(),
+                profection_arc_to_date_method: preserved.get_value().0,
+                daily_direction_method: daily_direction_method.get(),
+                secondary_progression_method: preserved.get_value().1,
+                lunar_day_profection_method: preserved.get_value().2,
+            };
+            storage.set_process_data(process);
+        });
+    }
 
     // 夏令时提示（两段共用一个对话框，消息带前缀区分）
     let dst_alert = RwSignal::new(String::new());
@@ -80,11 +158,16 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
 
     // 打开窗口：取当前表单快照 + 工作区尺寸（级联摆放 / 贴边夹取用）。
     // 衍生盘以出生数据为基准（对齐原版 onOpenChart 取 horoData），
-    // 基准行星取 storage 中的当前值一并快照进窗口。
+    // 基准行星取 storage 中的当前值一并快照进窗口；方向推运三类窗口
+    // 另携推运数据快照（面板 Effect 实时写回，storage 即当前值）。
     let open_chart = move |chart_type: ChartType| {
         let snapshot = match chart_type {
-            ChartType::Native | ChartType::Derived => (&*native_state.read()).into(),
             ChartType::Event => (&*event_state.read()).into(),
+            ChartType::Native
+            | ChartType::Derived
+            | ChartType::Direction
+            | ChartType::DailyDirection
+            | ChartType::SolarArc => (&*native_state.read()).into(),
         };
         let area = work_area
             .get()
@@ -99,11 +182,15 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
             .unwrap_or_else(|| WindowRect::new(0.0, 0.0, 800.0, 600.0));
         let derived_planet =
             (chart_type == ChartType::Derived).then(|| storage.derived_planet_name());
-        mgr.open(chart_type, snapshot, area, derived_planet);
+        let process = chart_type.is_direction().then(|| storage.process_data());
+        mgr.open(chart_type, snapshot, area, derived_planet, process);
     };
     let open_native = move |_| open_chart(ChartType::Native);
     let open_event = move |_| open_chart(ChartType::Event);
     let open_derived = move |_| open_chart(ChartType::Derived);
+    let open_direction = move |_| open_chart(ChartType::Direction);
+    let open_daily_direction = move |_| open_chart(ChartType::DailyDirection);
+    let open_solar_arc = move |_| open_chart(ChartType::SolarArc);
 
     view! {
         <div class=style::panel>
@@ -220,6 +307,82 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                 </Show>
             </section>
 
+            // —— 推运数据段（对应原版 input-panel 的 processData 节，默认收起）——
+            <section class=style::section>
+                <button
+                    class=style::section_header
+                    on:click=move |_| show_process.update(|v| *v = !*v)
+                >
+                    <span class=style::section_title>"推运数据"</span>
+                    <svg
+                        class=move || if show_process.get() { style::chevron_up } else { style::chevron }
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    >
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+                <Show when=move || show_process.get()>
+                    <div class=style::section_body>
+                        <div class=form::field>
+                            <label>"推运类型"</label>
+                            <div class=form::control>
+                                <select
+                                    on:change=move |ev| {
+                                        // 编辑实时写回 HoroStorage（对齐原版 onProcessDataChange）
+                                        let v = event_target_value(&ev);
+                                        if let Some(p) = DIRECTION_PROCESSES
+                                            .iter()
+                                            .copied()
+                                            .find(|p| process_value(*p) == v)
+                                        {
+                                            process_name.set(p);
+                                        }
+                                    }
+                                >
+                                    {DIRECTION_PROCESSES
+                                        .iter()
+                                        .copied()
+                                        .map(|p| {
+                                            let selected = move || process_name.get() == p;
+                                            view! {
+                                                <option value=process_value(p) selected=selected>
+                                                    {process_title(p)}
+                                                </option>
+                                            }
+                                        })
+                                        .collect::<Vec<_>>()}
+                                </select>
+                            </div>
+                        </div>
+                        <DateTimeInput state=process_state/>
+                        <GeoInput state=process_state/>
+                        <Show when=move || process_name.get() == ProcessName::Direction fallback=|| ()>
+                            {method_select("主限算法", direction_method, &DIRECTION_METHODS)}
+                            {method_select("换算方式", arc_to_date_method, &ARC_TO_DATE_METHODS)}
+                        </Show>
+                        <Show
+                            when=move || process_name.get() == ProcessName::DailyDirection
+                            fallback=|| ()
+                        >
+                            {method_select("方向弧算法", daily_direction_method, &DAILY_DIRECTION_METHODS)}
+                            <div class=form::field>
+                                <label>"日返月亮"</label>
+                                <div class=form::control>
+                                    <label class=form::toggle>
+                                        <input type="checkbox" bind:checked=is_solar_return/>
+                                        <span>"开启"</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </Show>
+                        <p class=style::hint>
+                            "推运数据实时写回本地缓存；方向推运窗口按打开时刻的快照计算"
+                        </p>
+                    </div>
+                </Show>
+            </section>
+
             // —— 天象数据段（对齐原版 workbench：不含姓名 / 性别）——
             <section class=style::section>
                 <button
@@ -274,6 +437,42 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                                 <path d="M21 3v6h-6"/>
                             </svg>
                             "衍生盘"
+                        </button>
+                        <button class=style::chart_btn on:click=open_direction>
+                            // 沙漏轮廓，同首页推运入口
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 3h12"/>
+                                <path d="M6 21h12"/>
+                                <path d="M7 3v3a5 5 0 0 0 5 5 5 5 0 0 0 5-5V3"/>
+                                <path d="M7 21v-3a5 5 0 0 1 5-5 5 5 0 0 1 5 5v3"/>
+                            </svg>
+                            "主向推运"
+                        </button>
+                        <button class=style::chart_btn on:click=open_daily_direction>
+                            // 每日回归：单向循环箭头加节点
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 12a8 8 0 0 1 14-5.3"/>
+                                <path d="M18 2v5h-5"/>
+                                <path d="M20 12a8 8 0 0 1-14 5.3"/>
+                                <path d="M6 22v-5h5"/>
+                            </svg>
+                            "每日回归"
+                        </button>
+                        <button class=style::chart_btn on:click=open_solar_arc>
+                            // 太阳弧：日轮加运动弧线
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="4"/>
+                                <path d="M12 2v3"/>
+                                <path d="M12 19v3"/>
+                                <path d="M2 12h3"/>
+                                <path d="M19 12h3"/>
+                                <path d="M4.9 4.9l2.1 2.1"/>
+                                <path d="M17 17l2.1 2.1"/>
+                            </svg>
+                            "太阳弧"
                         </button>
                     </div>
                     <p class=style::hint>"窗口以打开时的数据为准，之后修改面板不影响已开窗口"</p>

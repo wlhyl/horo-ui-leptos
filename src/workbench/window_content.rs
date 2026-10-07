@@ -4,6 +4,8 @@
 //! 窗口内可编辑时间（对应原版 embedded 模式的时间控件）：改动只写窗口本地
 //! 的日期信号，防抖后重新请求并重绘，不回写快照 / 面板 / localStorage；
 //! 重试按钮同样以当前日期重新请求（对应原版 embedded 组件的错误处理增强）。
+//! 方向推运三类窗口（主向推运 / 每日回归方向弧 / 太阳弧）不经星盘请求，
+//! 直接渲染 DirectionView（自带筛选区与请求链，数据同样取开窗快照）。
 use std::cell::Cell;
 
 use leptos::prelude::*;
@@ -14,12 +16,15 @@ use crate::api::client::{post_derived, post_native};
 use crate::api::request::{DerivedHoroRequest, HoroNativeRequest};
 use crate::api::response::Horoscope;
 use crate::components::{ChartTimeEditor, ChartWheel};
+use crate::direction::DirectionView;
 use crate::enums::house::HouseName;
 use crate::enums::planet::PlanetName;
-use crate::models::data::HoroData;
+use crate::enums::process_name::ProcessName;
+use crate::models::data::{HoroData, ProcessData};
 use crate::models::datetime::DateTimeData;
 use crate::models::geo::GeoPosition;
 use crate::shared::sleep_ms;
+use crate::storage::HoroStorage;
 use crate::workbench::window::ChartType;
 
 stylance::import_crate_style!(style, "src/workbench/window_content.module.css");
@@ -54,6 +59,8 @@ async fn fetch(
             })
             .await
         }
+        // 方向推运三类窗口在 WindowContent 开头提前返回，不会走到这里
+        _ => unreachable!("方向推运窗口已提前返回"),
     }
 }
 
@@ -62,7 +69,29 @@ pub fn WindowContent(
     chart_type: ChartType,
     snapshot: HoroData,
     derived_planet: Option<PlanetName>,
+    process: Option<ProcessData>,
+    on_title: Option<Callback<String>>,
 ) -> impl IntoView {
+    // 方向推运三类窗口：渲染方向推运视图（自带筛选区 / 请求链 / 结果表，
+    // 编辑同样只写窗口本地状态）。快照缺失时回落当前缓存值（正常路径下开窗必带）。
+    if chart_type.is_direction() {
+        let mode = match chart_type {
+            ChartType::Direction => ProcessName::Direction,
+            ChartType::DailyDirection => ProcessName::DailyDirection,
+            ChartType::SolarArc => ProcessName::SolarArc,
+            _ => unreachable!("is_direction 已过滤非方向推运类型"),
+        };
+        let process = process.unwrap_or_else(|| {
+            use_context::<HoroStorage>()
+                .expect("HoroStorage 未初始化")
+                .process_data()
+        });
+        return view! {
+            <DirectionView mode horo=snapshot process on_title/>
+        }
+        .into_any();
+    }
+
     // 仅快照来源不同（面板按类型取对应表单）：本命 / 衍生盘取出生数据，
     // 天象取天象数据；衍生盘请求额外携带基准行星快照。
     let (geo, house) = (snapshot.geo, snapshot.house);
@@ -151,4 +180,5 @@ pub fn WindowContent(
             })}
         </div>
     }
+    .into_any()
 }

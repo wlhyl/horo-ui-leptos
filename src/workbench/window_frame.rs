@@ -6,7 +6,7 @@
 use leptos::prelude::*;
 
 use crate::workbench::window::{
-    WindowMgr, WindowRect, WindowState, WorkbenchWindow, MIN_HEIGHT, MIN_WIDTH,
+    MIN_HEIGHT, MIN_WIDTH, WindowMgr, WindowRect, WindowState, WorkbenchWindow, date_summary,
 };
 use crate::workbench::window_content::WindowContent;
 
@@ -76,6 +76,8 @@ pub fn WindowFrame(
     let state = Memo::new(move |_| mgr.state_of(id));
     let z_index = Memo::new(move |_| mgr.z_of(id));
     let is_top = Memo::new(move |_| mgr.is_top(id));
+    // 标题也是动态字段：方向推运窗口选中显著星后经 update_title 变化
+    let title = Memo::new(move |_| mgr.title_of(id).unwrap_or_else(|| window.title.clone()));
     let is_visible = Memo::new(move |_| state.get().is_some_and(|s| s.is_visible()));
     let is_maximized = Memo::new(move |_| state.get() == Some(WindowState::Maximized));
 
@@ -88,7 +90,12 @@ pub fn WindowFrame(
         work_area
             .get()
             .map(|el| {
-                WindowRect::new(0.0, 0.0, el.client_width() as f64, el.client_height() as f64)
+                WindowRect::new(
+                    0.0,
+                    0.0,
+                    el.client_width() as f64,
+                    el.client_height() as f64,
+                )
             })
             .unwrap_or_else(|| WindowRect::new(0.0, 0.0, 800.0, 600.0))
     };
@@ -211,8 +218,8 @@ pub fn WindowFrame(
             on:pointerdown=on_frame_down
         >
             <div class=style::title_bar on:pointerdown=on_title_down>
-                <span class=style::title_text title=window.title.clone()>
-                    {window.title.clone()}
+                <span class=style::title_text title=move || title.get()>
+                    {move || title.get()}
                 </span>
                 <div class=style::title_buttons on:pointerdown=swallow>
                     <button class=style::win_btn on:click=on_minimize title="最小化">
@@ -268,6 +275,25 @@ pub fn WindowFrame(
                     chart_type=window.chart_type
                     snapshot=window.snapshot.clone()
                     derived_planet=window.derived_planet
+                    process=window.process
+                    // 方向推运窗口：显著星筛选变化时按后缀重建标题（对齐原版 titleChange）
+                    on_title=if window.chart_type.is_direction() {
+                        let mgr = mgr;
+                        let date = window.snapshot.date;
+                        Some(Callback::new(move |suffix: String| {
+                            mgr.update_title(
+                                id,
+                                format!(
+                                    "{} · {}{}",
+                                    window.chart_type.title(),
+                                    date_summary(&date),
+                                    suffix
+                                ),
+                            );
+                        }))
+                    } else {
+                        None
+                    }
                 />
             </div>
 
