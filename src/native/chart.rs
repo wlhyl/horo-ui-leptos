@@ -13,7 +13,7 @@ use wasm_bindgen_futures::spawn_local;
 use crate::api::client::{post_derived, post_native};
 use crate::api::request::{DerivedHoroRequest, HoroNativeRequest};
 use crate::api::response::Horoscope;
-use crate::components::{AlertDialog, AspectGrid, ChartTimeEditor, ChartWheel, Detail};
+use crate::components::{AlertDialog, AspectGrid, ChartArchive, ChartTimeEditor, ChartWheel, Detail};
 use crate::enums::house::HouseName;
 use crate::enums::planet::PlanetName;
 use crate::models::datetime::DateTimeData;
@@ -83,6 +83,8 @@ pub fn Chart(mode: ChartMode) -> impl IntoView {
     let (geo, house) = (data.geo, data.house);
     let derived_planet = storage.derived_planet_name();
     let date = RwSignal::new(data.date);
+    // 快照入 StoredValue：存档入口在动态视图内按需重建，闭包只捕获 Copy 句柄
+    let data = StoredValue::new(data);
 
     let (result, set_result) = signal(None::<Result<Horoscope, String>>);
     let loading = RwSignal::new(false);
@@ -95,7 +97,7 @@ pub fn Chart(mode: ChartMode) -> impl IntoView {
     // 首次立即请求（保持首屏速度）
     spawn_local(async move {
         loading.set(true);
-        let res = fetch(mode, data.date, geo, house, derived_planet).await;
+        let res = fetch(mode, data.get_value().date, geo, house, derived_planet).await;
         loading.set(false);
         if let Err(e) = &res {
             alert_msg.set(e.clone());
@@ -177,25 +179,32 @@ pub fn Chart(mode: ChartMode) -> impl IntoView {
 
             {move || result.get().and_then(Result::ok).map(|h| {
                 view! {
-                    <div class=style::tabs>
-                        <button
-                            class=move || if tab.get() == Tab::Wheel { style::active } else { "" }
-                            on:click=move |_| set_tab.set(Tab::Wheel)
-                        >
-                            "星盘"
-                        </button>
-                        <button
-                            class=move || if tab.get() == Tab::Aspect { style::active } else { "" }
-                            on:click=move |_| set_tab.set(Tab::Aspect)
-                        >
-                            "相位"
-                        </button>
-                        <button
-                            class=move || if tab.get() == Tab::Detail { style::active } else { "" }
-                            on:click=move |_| set_tab.set(Tab::Detail)
-                        >
-                            "详情"
-                        </button>
+                    // 标签行：星盘 / 相位 / 详情 分段控件居左，存档入口居右（衍生盘无存档）
+                    <div class=style::tabs_row>
+                        <div class=style::tabs>
+                            <button
+                                class=move || if tab.get() == Tab::Wheel { style::active } else { "" }
+                                on:click=move |_| set_tab.set(Tab::Wheel)
+                            >
+                                "星盘"
+                            </button>
+                            <button
+                                class=move || if tab.get() == Tab::Aspect { style::active } else { "" }
+                                on:click=move |_| set_tab.set(Tab::Aspect)
+                            >
+                                "相位"
+                            </button>
+                            <button
+                                class=move || if tab.get() == Tab::Detail { style::active } else { "" }
+                                on:click=move |_| set_tab.set(Tab::Detail)
+                            >
+                                "详情"
+                            </button>
+                        </div>
+                        // 存档入口：本命 / 天象可用，衍生盘不提供（对齐原版 mode !== Derived）
+                        <Show when=move || mode != ChartMode::Derived fallback=|| ()>
+                            <ChartArchive mode data=data.get_value() date=date/>
+                        </Show>
                     </div>
                     <div class=style::tab_content>
                         {{

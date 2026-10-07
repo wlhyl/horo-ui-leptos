@@ -19,11 +19,18 @@
   color: var(--text-0);
 }
 
+/* 标签行：星盘 / 相位 / 详情 分段控件居左，存档入口居右（衍生盘仅标签） */
+.tabs_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
 /* 小巧的分段式标签：轨道随内容收缩，激活段渐变胶囊（配色与主按钮一致） */
 .tabs {
   display: inline-flex;
   gap: 4px;
-  margin-bottom: 14px;
   padding: 3px;
   background: var(--bg);
   border: 1px solid var(--line);

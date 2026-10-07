@@ -2,7 +2,7 @@
 //! 后台 serde 默认使用 snake_case，枚举序列化为枚举名字符串（英文）。
 //! 仅声明前端需要的字段，其余字段由 serde 自动忽略。
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::enums::{
     house::HouseName,
@@ -63,7 +63,8 @@ pub struct FixedStar {
 }
 
 /// 档案记录的盘类型（horo-storage-api）：本命 natal / 卜卦 horary。
-#[derive(Clone, Copy, PartialEq, Eq, Deserialize)]
+/// 请求 / 响应共用（存档时序列化为枚举名字符串）。
+#[derive(Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ChartType {
     Natal,

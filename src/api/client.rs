@@ -1,6 +1,9 @@
 //! 后台 HTTP 调用封装（gloo-net，wasm fetch）。
 
-use crate::api::request::{DerivedHoroRequest, HoroNativeRequest, LoginRequest};
+use crate::api::request::{
+    DerivedHoroRequest, HoroNativeRequest, HoroscopeRecordRequest, LoginRequest,
+    UpdateHoroscopeRecordRequest,
+};
 use crate::api::response::{Horoscope, HoroscopeRecord, LocationResponse, PageResponser, TokenResponse};
 use crate::config::{ADMIN_API_BASE_URL, API_BASE_URL};
 use gloo_net::http::Request;
@@ -141,5 +144,67 @@ async fn fetch_records(url: &str, token: &str) -> Result<PageResponser<Horoscope
             Err(msg)
         }
         status => Err(format!("查询失败（HTTP {status}）")),
+    }
+}
+
+/// 调用 POST /api/horo-admin/horoscopes 新增档案记录，成功返回含新 id 的完整记录。
+/// 后台校验失败（如姓名为空、年份越界）返回 400 与 `{"error": "..."}`。
+pub async fn add_horoscope(
+    req: &HoroscopeRecordRequest,
+    token: &str,
+) -> Result<HoroscopeRecord, String> {
+    let url = format!("{ADMIN_API_BASE_URL}/api/horo-admin/horoscopes");
+    let res = Request::post(&url)
+        .header("Content-Type", "application/json")
+        .header("token", token)
+        .json(req)
+        .map_err(|e| format!("序列化失败：{e}"))?
+        .send()
+        .await
+        .map_err(|e| format!("网络错误：{e}"))?;
+    match res.status() {
+        200 => res
+            .json::<HoroscopeRecord>()
+            .await
+            .map_err(|e| format!("解析响应失败：{e}")),
+        400 | 401 | 403 | 404 => {
+            let msg = res
+                .json::<ErrorResponse>()
+                .await
+                .map(|r| r.error)
+                .unwrap_or_else(|_| "存档失败".into());
+            Err(msg)
+        }
+        status => Err(format!("存档失败（HTTP {status}）")),
+    }
+}
+
+/// 调用 PUT /api/horo-admin/horoscopes/{id} 更新档案记录（200 空 body）。
+/// 请求体为 diff 语义：null 字段后台不修改；锁定记录更新非描述字段返回 400。
+pub async fn update_horoscope(
+    id: u32,
+    req: &UpdateHoroscopeRecordRequest,
+    token: &str,
+) -> Result<(), String> {
+    let url = format!("{ADMIN_API_BASE_URL}/api/horo-admin/horoscopes/{id}");
+    let res = Request::put(&url)
+        .header("Content-Type", "application/json")
+        .header("token", token)
+        .json(req)
+        .map_err(|e| format!("序列化失败：{e}"))?
+        .send()
+        .await
+        .map_err(|e| format!("网络错误：{e}"))?;
+    match res.status() {
+        200 => Ok(()),
+        400 | 401 | 403 | 404 => {
+            let msg = res
+                .json::<ErrorResponse>()
+                .await
+                .map(|r| r.error)
+                .unwrap_or_else(|_| "存档失败".into());
+            Err(msg)
+        }
+        status => Err(format!("存档失败（HTTP {status}）")),
     }
 }
