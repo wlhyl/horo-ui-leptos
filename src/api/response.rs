@@ -191,6 +191,54 @@ impl From<ReturnHoroscope> for Horoscope {
     }
 }
 
+/// 比较盘响应（horo-api /api/process/compare），仅声明前端需要的字段
+/// （后台另返回 original_geo / comparison_geo 等，由 serde 自动忽略）。
+/// 宫位制与 12 宫头取原盘（houses_cusps），比较盘宫头单列。
+/// 行星分两组：original_* 为原盘、comparison_* 为比较盘；相位 p0 属比较盘、
+/// p1 属原盘（对齐原版「比较盘行星横看、原盘行星竖看」的矩阵约定）。
+#[derive(Clone, Deserialize)]
+pub struct HoroscopeComparison {
+    /// 原星盘时间
+    pub original_date: DateTimeData,
+    /// 比较盘时间（行运时间 / 返照时刻 / 次限时刻）
+    pub comparison_date: DateTimeData,
+    /// 星盘的宫位制
+    pub house_name: HouseName,
+    /// 原盘 12 宫头黄经
+    pub houses_cusps: Vec<f64>,
+    /// 比较盘 12 宫头黄经
+    pub comparison_cusps: Vec<f64>,
+    pub original_asc: Planet,
+    pub comparison_asc: Planet,
+    pub original_mc: Planet,
+    pub comparison_mc: Planet,
+    pub original_dsc: Planet,
+    pub comparison_dsc: Planet,
+    pub original_ic: Planet,
+    pub comparison_ic: Planet,
+    pub original_part_of_fortune: Planet,
+    pub comparison_part_of_fortune: Planet,
+    /// 七颗行星
+    pub original_planets: Vec<Planet>,
+    pub comparison_planets: Vec<Planet>,
+    /// 行星相位，仅包含四轴、行星间的相位
+    pub aspects: Vec<Aspect>,
+    /// 映点
+    pub antiscoins: Vec<Aspect>,
+    /// 反映点
+    pub contraantiscias: Vec<Aspect>,
+}
+
+/// 次限推运响应（horo-api /api/process/secondary_progression），
+/// 仅声明前端需要的字段（后台另返回 native_date / process_date / horoscope 等）。
+#[derive(Clone, Deserialize)]
+pub struct SecondaryProgression {
+    /// 次限推运时刻（送比较盘接口时 st 置 false）
+    pub progression_date: DateTimeData,
+    /// 次限对应的太阳返照时刻（展示用）
+    pub solar_return_date: DateTimeData,
+}
+
 /// 方向推运的显著星（被推运方）：行星 / 四轴福点，或宫头（1-12）。
 /// 后端按「单键对象」序列化（如 {"planet":"Sun"} / {"cusp":3}），故用 untagged。
 #[derive(Clone, Copy, PartialEq, Deserialize)]

@@ -6,7 +6,8 @@
 //! 重试按钮同样以当前日期重新请求（对应原版 embedded 组件的错误处理增强）。
 //! 方向推运三类窗口（主向推运 / 每日回归方向弧 / 太阳弧）不经星盘请求，
 //! 直接渲染 DirectionView（自带筛选区与请求链，数据同样取开窗快照）；
-//! 返照盘三类窗口（日返 / 月返 / 每日回归）同理渲染 ReturnView。
+//! 返照盘三类窗口（日返 / 月返 / 每日回归）同理渲染 ReturnView；
+//! 比较盘八类窗口（行运 / 返照比较六向 / 次限比本命）同理渲染 CompareView。
 use std::cell::Cell;
 
 use leptos::prelude::*;
@@ -16,6 +17,7 @@ use wasm_bindgen_futures::spawn_local;
 use crate::api::client::{post_derived, post_native};
 use crate::api::request::{DerivedHoroRequest, HoroNativeRequest};
 use crate::api::response::Horoscope;
+use crate::compare::CompareView;
 use crate::components::{ChartTimeEditor, ChartWheel};
 use crate::direction::DirectionView;
 use crate::enums::house::HouseName;
@@ -110,6 +112,33 @@ pub fn WindowContent(
         });
         return view! {
             <ReturnView mode horo=snapshot process/>
+        }
+        .into_any();
+    }
+
+    // 比较盘八类窗口（行运 / 返照比较六向 / 次限比本命）：渲染比较视图
+    // （自带请求分流 / 时间编辑，数据同样取开窗快照）。快照缺失时回落当前缓存值。
+    if chart_type.is_compare() {
+        let mode = match chart_type {
+            ChartType::Transit => ProcessName::Transit,
+            ChartType::SolarComparNative => ProcessName::SolarcomparNative,
+            ChartType::NativeComparSolar => ProcessName::NativecomparSolar,
+            ChartType::LunarComparNative => ProcessName::LunarcomparNative,
+            ChartType::NativeComparLunar => ProcessName::NativecomparLunar,
+            ChartType::DailyComparNative => ProcessName::DailycomparNative,
+            ChartType::NativeComparDaily => ProcessName::NativecomparDaily,
+            ChartType::SecondaryProgressionComparNative => {
+                ProcessName::SecondaryProgressionComparNative
+            }
+            _ => unreachable!("is_compare 已过滤非比较盘类型"),
+        };
+        let process = process.unwrap_or_else(|| {
+            use_context::<HoroStorage>()
+                .expect("HoroStorage 未初始化")
+                .process_data()
+        });
+        return view! {
+            <CompareView mode horo=snapshot process/>
         }
         .into_any();
     }

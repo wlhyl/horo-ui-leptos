@@ -32,6 +32,22 @@ pub enum AppRoute {
     ReturnLunar,
     /// 每日回归盘结果页。
     ReturnDaily,
+    /// 行运比本命结果页。
+    CompareTransit,
+    /// 日返比本命结果页。
+    CompareSolarNative,
+    /// 本命比日返结果页。
+    CompareNativeSolar,
+    /// 月返比本命结果页。
+    CompareLunarNative,
+    /// 本命比月返结果页。
+    CompareNativeLunar,
+    /// 每日回归比本命结果页。
+    CompareDailyNative,
+    /// 本命比每日回归结果页。
+    CompareNativeDaily,
+    /// 次限比本命结果页。
+    CompareSecondaryProgression,
     /// 用户登录页。
     User,
     /// 清除缓存页。
@@ -60,6 +76,14 @@ impl AppRoute {
             AppRoute::ReturnSolar => "/return/solar",
             AppRoute::ReturnLunar => "/return/lunar",
             AppRoute::ReturnDaily => "/return/daily",
+            AppRoute::CompareTransit => "/compare/transit",
+            AppRoute::CompareSolarNative => "/compare/solar_native",
+            AppRoute::CompareNativeSolar => "/compare/native_solar",
+            AppRoute::CompareLunarNative => "/compare/lunar_native",
+            AppRoute::CompareNativeLunar => "/compare/native_lunar",
+            AppRoute::CompareDailyNative => "/compare/daily_native",
+            AppRoute::CompareNativeDaily => "/compare/native_daily",
+            AppRoute::CompareSecondaryProgression => "/compare/secondary_progression",
             AppRoute::User => "/user",
             AppRoute::Clean => "/clean",
             AppRoute::Power => "/power",
@@ -148,6 +172,21 @@ mod tests {
         assert!(!matches(AppRoute::ReturnSolar, "/return/lunar"));
         assert!(!matches(AppRoute::ReturnLunar, "/return/daily"));
 
+        assert!(matches(AppRoute::CompareTransit, "/compare/transit"));
+        assert!(matches(AppRoute::CompareSolarNative, "/compare/solar_native"));
+        assert!(matches(AppRoute::CompareNativeSolar, "/compare/native_solar"));
+        assert!(matches(AppRoute::CompareLunarNative, "/compare/lunar_native"));
+        assert!(matches(AppRoute::CompareNativeLunar, "/compare/native_lunar"));
+        assert!(matches(AppRoute::CompareDailyNative, "/compare/daily_native"));
+        assert!(matches(AppRoute::CompareNativeDaily, "/compare/native_daily"));
+        assert!(matches(
+            AppRoute::CompareSecondaryProgression,
+            "/compare/secondary_progression"
+        ));
+        assert!(!matches(AppRoute::CompareTransit, "/compare"));
+        assert!(!matches(AppRoute::CompareSolarNative, "/compare/transit"));
+        assert!(!matches(AppRoute::CompareNativeSolar, "/compare/solar_native"));
+
         assert!(matches(AppRoute::User, "/user"));
         assert!(!matches(AppRoute::User, "/"));
         assert!(!matches(AppRoute::Home, "/user"));
@@ -178,6 +217,14 @@ mod tests {
             AppRoute::ReturnSolar,
             AppRoute::ReturnLunar,
             AppRoute::ReturnDaily,
+            AppRoute::CompareTransit,
+            AppRoute::CompareSolarNative,
+            AppRoute::CompareNativeSolar,
+            AppRoute::CompareLunarNative,
+            AppRoute::CompareNativeLunar,
+            AppRoute::CompareDailyNative,
+            AppRoute::CompareNativeDaily,
+            AppRoute::CompareSecondaryProgression,
             AppRoute::User,
             AppRoute::Clean,
             AppRoute::Power,

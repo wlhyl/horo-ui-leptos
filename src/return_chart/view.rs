@@ -42,7 +42,8 @@ const DATE_DEBOUNCE_MS: i32 = 300;
 /// getDailyReturnData）。开启「日返月亮 / 日返月返」时按 日返→月返→每日回归
 /// 逐层链式取返照时刻：每步以上一步的返照时刻为下一步的本命时间、st 固定 false。
 /// 经纬度一律用推运数据的居住地、宫位用出生数据的宫位制（对齐原版 getReturnData）。
-async fn fetch_return(
+/// 返照比较盘（compare 模块）复用同一链路取返照时刻。
+pub(crate) async fn fetch_return(
     mode: ProcessName,
     native_date: DateTimeData,
     process_date: DateTimeData,

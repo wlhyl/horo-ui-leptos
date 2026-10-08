@@ -1,0 +1,22 @@
+/*! 比较盘相位矩阵 SVG。 */
+
+/* 关键：限制 SVG 的重绘区域，缩放时只重绘图表本身，不波及其它节点 */
+.aspect-svg {
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  contain: layout paint;
+}
+
+/* 强制占星符号按文字字形渲染，避免被当成彩色 emoji（红底/放大） */
+.aspect-svg text {
+  font-variant-emoji: text;
+}
+
+@media (min-width: 760px) {
+  .aspect-svg {
+    max-width: 620px;
+  }
+}

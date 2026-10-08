@@ -3,6 +3,7 @@ mod app;
 mod astro;
 mod auth;
 mod clean;
+mod compare;
 mod components;
 mod config;
 mod direction;

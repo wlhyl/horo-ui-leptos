@@ -19,6 +19,7 @@ CLAUDE.md
 *.bak
 .zcodeignore 
 .zcode
+.workbuddy
 
 # LLVM 覆盖率产物（instrument-coverage 运行时生成）
 *.profraw

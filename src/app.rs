@@ -6,6 +6,7 @@ use leptos_router::hooks::{use_location, use_navigate};
 
 use crate::auth::AuthService;
 use crate::clean;
+use crate::compare;
 use crate::direction;
 use crate::enums::process_name::ProcessName;
 use crate::home::Home;
@@ -61,6 +62,14 @@ pub fn App() -> impl IntoView {
                         <Route path=AppRoute::ReturnSolar view=move || view! { <return_chart::ReturnPage mode=ProcessName::SolarReturn/> }/>
                         <Route path=AppRoute::ReturnLunar view=move || view! { <return_chart::ReturnPage mode=ProcessName::LunarReturn/> }/>
                         <Route path=AppRoute::ReturnDaily view=move || view! { <return_chart::ReturnPage mode=ProcessName::DailyReturn/> }/>
+                        <Route path=AppRoute::CompareTransit view=move || view! { <compare::ComparePage mode=ProcessName::Transit/> }/>
+                        <Route path=AppRoute::CompareSolarNative view=move || view! { <compare::ComparePage mode=ProcessName::SolarcomparNative/> }/>
+                        <Route path=AppRoute::CompareNativeSolar view=move || view! { <compare::ComparePage mode=ProcessName::NativecomparSolar/> }/>
+                        <Route path=AppRoute::CompareLunarNative view=move || view! { <compare::ComparePage mode=ProcessName::LunarcomparNative/> }/>
+                        <Route path=AppRoute::CompareNativeLunar view=move || view! { <compare::ComparePage mode=ProcessName::NativecomparLunar/> }/>
+                        <Route path=AppRoute::CompareDailyNative view=move || view! { <compare::ComparePage mode=ProcessName::DailycomparNative/> }/>
+                        <Route path=AppRoute::CompareNativeDaily view=move || view! { <compare::ComparePage mode=ProcessName::NativecomparDaily/> }/>
+                        <Route path=AppRoute::CompareSecondaryProgression view=move || view! { <compare::ComparePage mode=ProcessName::SecondaryProgressionComparNative/> }/>
                         <Route path=AppRoute::User view=move || view! { <user::User/> }/>
                         <Route path=AppRoute::Clean view=move || view! { <clean::Clean/> }/>
                         <Route path=AppRoute::Power view=move || view! { <power::Power/> }/>

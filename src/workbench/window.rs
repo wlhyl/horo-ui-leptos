@@ -43,6 +43,22 @@ pub enum ChartType {
     LunarReturn,
     /// 每日回归盘（快照取出生数据 + 推运数据）
     DailyReturn,
+    /// 行运比本命（快照取出生数据 + 推运数据）
+    Transit,
+    /// 日返比本命（快照取出生数据 + 推运数据）
+    SolarComparNative,
+    /// 本命比日返（快照取出生数据 + 推运数据）
+    NativeComparSolar,
+    /// 月返比本命（快照取出生数据 + 推运数据）
+    LunarComparNative,
+    /// 本命比月返（快照取出生数据 + 推运数据）
+    NativeComparLunar,
+    /// 每日回归比本命（快照取出生数据 + 推运数据）
+    DailyComparNative,
+    /// 本命比每日回归（快照取出生数据 + 推运数据）
+    NativeComparDaily,
+    /// 次限比本命（快照取出生数据 + 推运数据）
+    SecondaryProgressionComparNative,
 }
 
 impl ChartType {
@@ -58,6 +74,14 @@ impl ChartType {
             ChartType::SolarReturn => "日返",
             ChartType::LunarReturn => "月返",
             ChartType::DailyReturn => "每日回归",
+            ChartType::Transit => "行运",
+            ChartType::SolarComparNative => "日返比本命",
+            ChartType::NativeComparSolar => "本命比日返",
+            ChartType::LunarComparNative => "月返比本命",
+            ChartType::NativeComparLunar => "本命比月返",
+            ChartType::DailyComparNative => "每日回归比本命",
+            ChartType::NativeComparDaily => "本命比每日回归",
+            ChartType::SecondaryProgressionComparNative => "次限比本命",
         }
     }
 
@@ -77,9 +101,24 @@ impl ChartType {
         )
     }
 
-    /// 是否为携带推运数据快照的窗口（方向推运 + 返照盘）。
+    /// 是否为比较盘类窗口（CompareView 渲染）。
+    pub fn is_compare(self) -> bool {
+        matches!(
+            self,
+            ChartType::Transit
+                | ChartType::SolarComparNative
+                | ChartType::NativeComparSolar
+                | ChartType::LunarComparNative
+                | ChartType::NativeComparLunar
+                | ChartType::DailyComparNative
+                | ChartType::NativeComparDaily
+                | ChartType::SecondaryProgressionComparNative
+        )
+    }
+
+    /// 是否为携带推运数据快照的窗口（方向推运 + 返照盘 + 比较盘）。
     pub fn is_process(self) -> bool {
-        self.is_direction() || self.is_return()
+        self.is_direction() || self.is_return() || self.is_compare()
     }
 }
 

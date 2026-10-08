@@ -4,6 +4,7 @@
 //! 后续新增体系（七政四余 / 推运 / 合盘）在此目录下按体系增文件即可。
 
 pub mod aspect;
+pub mod compare;
 pub mod glyphs;
 pub mod svg;
 pub mod wheel;

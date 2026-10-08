@@ -167,7 +167,15 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
             | ChartType::SolarArc
             | ChartType::SolarReturn
             | ChartType::LunarReturn
-            | ChartType::DailyReturn => (&*native_state.read()).into(),
+            | ChartType::DailyReturn
+            | ChartType::Transit
+            | ChartType::SolarComparNative
+            | ChartType::NativeComparSolar
+            | ChartType::LunarComparNative
+            | ChartType::NativeComparLunar
+            | ChartType::DailyComparNative
+            | ChartType::NativeComparDaily
+            | ChartType::SecondaryProgressionComparNative => (&*native_state.read()).into(),
         };
         let area = work_area
             .get()
@@ -194,6 +202,16 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
     let open_solar_return = move |_| open_chart(ChartType::SolarReturn);
     let open_lunar_return = move |_| open_chart(ChartType::LunarReturn);
     let open_daily_return = move |_| open_chart(ChartType::DailyReturn);
+    let open_transit = move |_| open_chart(ChartType::Transit);
+    let open_solar_compar_native = move |_| open_chart(ChartType::SolarComparNative);
+    let open_native_compar_solar = move |_| open_chart(ChartType::NativeComparSolar);
+    let open_lunar_compar_native = move |_| open_chart(ChartType::LunarComparNative);
+    let open_native_compar_lunar = move |_| open_chart(ChartType::NativeComparLunar);
+    let open_daily_compar_native = move |_| open_chart(ChartType::DailyComparNative);
+    let open_native_compar_daily = move |_| open_chart(ChartType::NativeComparDaily);
+    let open_secondary_progression_compar = move |_| {
+        open_chart(ChartType::SecondaryProgressionComparNative)
+    };
 
     view! {
         <div class=style::panel>
@@ -347,8 +365,8 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                         >
                             {method_select("方向弧算法", daily_direction_method, &DAILY_DIRECTION_METHODS)}
                         </Show>
-                        // 日返月亮 / 日返月返：月返 / 每日回归 / 每日回归方向弧可基于
-                        // 日返逐层取返照时刻（标签随类型变化，对齐原版 process.page）
+                        // 日返月亮 / 日返月返：月返 / 每日回归 / 每日回归方向弧 /
+                        // 月返与每日回归比较盘可基于日返逐层取返照时刻（标签随类型变化）
                         <Show
                             when=move || {
                                 matches!(
@@ -356,6 +374,10 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                                     ProcessName::DailyDirection
                                         | ProcessName::LunarReturn
                                         | ProcessName::DailyReturn
+                                        | ProcessName::LunarcomparNative
+                                        | ProcessName::NativecomparLunar
+                                        | ProcessName::DailycomparNative
+                                        | ProcessName::NativecomparDaily
                                 )
                             }
                             fallback=|| ()
@@ -377,7 +399,7 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                             </div>
                         </Show>
                         <p class=style::hint>
-                            "推运数据实时写回本地缓存；方向推运 / 返照盘窗口按打开时刻的快照计算"
+                            "推运数据实时写回本地缓存；方向推运 / 返照盘 / 比较盘窗口按打开时刻的快照计算"
                         </p>
                     </div>
                 </Show>
@@ -507,6 +529,75 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                                 <path d="M3 21v-5h5"/>
                             </svg>
                             "每日回归"
+                        </button>
+                        // 分组分隔线：返照盘与比较盘两组按钮之间
+                        <div class=style::chart_divider/>
+                        <button class=style::chart_btn on:click=open_transit>
+                            // 行运：外圈轨道 + 内圈行星（两盘叠加读图）
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <circle cx="12" cy="12" r="4"/>
+                                <path d="M21 12h-5"/>
+                            </svg>
+                            "行运"
+                        </button>
+                        <button class=style::chart_btn on:click=open_solar_compar_native>
+                            // 比较盘：双环叠加（返照盘比本命盘）
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="10" cy="10" r="6.5"/>
+                                <circle cx="14" cy="14" r="6.5"/>
+                            </svg>
+                            "日返比本命"
+                        </button>
+                        <button class=style::chart_btn on:click=open_native_compar_solar>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="10" cy="10" r="6.5"/>
+                                <circle cx="14" cy="14" r="6.5"/>
+                            </svg>
+                            "本命比日返"
+                        </button>
+                        <button class=style::chart_btn on:click=open_lunar_compar_native>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="10" cy="10" r="6.5"/>
+                                <circle cx="14" cy="14" r="6.5"/>
+                            </svg>
+                            "月返比本命"
+                        </button>
+                        <button class=style::chart_btn on:click=open_native_compar_lunar>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="10" cy="10" r="6.5"/>
+                                <circle cx="14" cy="14" r="6.5"/>
+                            </svg>
+                            "本命比月返"
+                        </button>
+                        <button class=style::chart_btn on:click=open_daily_compar_native>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="10" cy="10" r="6.5"/>
+                                <circle cx="14" cy="14" r="6.5"/>
+                            </svg>
+                            "每日回归比本命"
+                        </button>
+                        <button class=style::chart_btn on:click=open_native_compar_daily>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="10" cy="10" r="6.5"/>
+                                <circle cx="14" cy="14" r="6.5"/>
+                            </svg>
+                            "本命比每日回归"
+                        </button>
+                        <button class=style::chart_btn on:click=open_secondary_progression_compar>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="10" cy="10" r="6.5"/>
+                                <circle cx="14" cy="14" r="6.5"/>
+                            </svg>
+                            "次限比本命"
                         </button>
                     </div>
                     <p class=style::hint>"窗口以打开时的数据为准，之后修改面板不影响已开窗口"</p>

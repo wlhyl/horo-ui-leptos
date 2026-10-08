@@ -150,6 +150,16 @@ pub(crate) fn ProcessInput() -> impl IntoView {
             ProcessName::SolarReturn => AppRoute::ReturnSolar.path(),
             ProcessName::LunarReturn => AppRoute::ReturnLunar.path(),
             ProcessName::DailyReturn => AppRoute::ReturnDaily.path(),
+            ProcessName::Transit => AppRoute::CompareTransit.path(),
+            ProcessName::SolarcomparNative => AppRoute::CompareSolarNative.path(),
+            ProcessName::NativecomparSolar => AppRoute::CompareNativeSolar.path(),
+            ProcessName::LunarcomparNative => AppRoute::CompareLunarNative.path(),
+            ProcessName::NativecomparLunar => AppRoute::CompareNativeLunar.path(),
+            ProcessName::DailycomparNative => AppRoute::CompareDailyNative.path(),
+            ProcessName::NativecomparDaily => AppRoute::CompareNativeDaily.path(),
+            ProcessName::SecondaryProgressionComparNative => {
+                AppRoute::CompareSecondaryProgression.path()
+            }
             _ => AppRoute::Direction.path(),
         };
         nav(path, NavigateOptions::default());
@@ -164,8 +174,12 @@ pub(crate) fn ProcessInput() -> impl IntoView {
         }
     };
     let solar_return_hint = move || match process_name.get() {
-        ProcessName::LunarReturn => "开启后先求日返返照时刻，再以该时刻计算月返盘",
-        ProcessName::DailyReturn => {
+        ProcessName::LunarReturn
+        | ProcessName::LunarcomparNative
+        | ProcessName::NativecomparLunar => "开启后先求日返返照时刻，再以该时刻计算月返盘",
+        ProcessName::DailyReturn
+        | ProcessName::DailycomparNative
+        | ProcessName::NativecomparDaily => {
             "开启后按 日返→月返→每日回归 逐层求取返照时刻，再以该时刻计算每日回归盘"
         }
         _ => "开启后按 日返→月返→每日回归 逐层求取返照时刻，再以返照时刻计算方向弧",
@@ -238,9 +252,9 @@ pub(crate) fn ProcessInput() -> impl IntoView {
                     {method_select("方向弧算法", daily_direction_method, &DAILY_DIRECTION_METHODS)}
                 </Show>
 
-                // 日返月亮 / 日返月返：月返 / 每日回归 / 每日回归方向弧可基于日返
-                // 逐层取返照时刻（对应原版 process.page 182-195 行，每日回归的标签
-                // 为「日返月返」，其余为「日返月亮」）
+                // 日返月亮 / 日返月返：月返 / 每日回归 / 每日回归方向弧 / 月返与
+                // 每日回归比较盘可基于日返逐层取返照时刻（对应原版 process.page
+                // 182-195 行，每日回归的标签为「日返月返」，其余为「日返月亮」）
                 <Show
                     when=move || {
                         matches!(
@@ -248,6 +262,10 @@ pub(crate) fn ProcessInput() -> impl IntoView {
                             ProcessName::DailyDirection
                                 | ProcessName::LunarReturn
                                 | ProcessName::DailyReturn
+                                | ProcessName::LunarcomparNative
+                                | ProcessName::NativecomparLunar
+                                | ProcessName::DailycomparNative
+                                | ProcessName::NativecomparDaily
                         )
                     }
                     fallback=|| ()

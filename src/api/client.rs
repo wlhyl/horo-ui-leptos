@@ -2,12 +2,12 @@
 
 use crate::api::request::{
     DailyDirectionRequest, DerivedHoroRequest, DirectionRequest, HoroNativeRequest,
-    HoroscopeRecordRequest, LoginRequest, ReturnRequest, SolarArcRequest,
-    UpdateHoroscopeRecordRequest,
+    HoroscopeComparisonRequest, HoroscopeRecordRequest, LoginRequest, ReturnRequest,
+    SecondaryProgressionRequest, SolarArcRequest, UpdateHoroscopeRecordRequest,
 };
 use crate::api::response::{
-    Direction, Horoscope, HoroscopeRecord, LocationResponse, PageResponser, ReturnHoroscope,
-    TokenResponse,
+    Direction, Horoscope, HoroscopeComparison, HoroscopeRecord, LocationResponse, PageResponser,
+    ReturnHoroscope, SecondaryProgression, TokenResponse,
 };
 use crate::config::{ADMIN_API_BASE_URL, API_BASE_URL};
 use gloo_net::http::Request;
@@ -126,6 +126,40 @@ async fn post_return(kind: &str, req: &ReturnRequest) -> Result<ReturnHoroscope,
         .await
         .map_err(|e| format!("网络错误：{e}"))?
         .json::<ReturnHoroscope>()
+        .await
+        .map_err(|e| format!("解析响应失败：{e}"))
+}
+
+/// 调用 POST /api/process/compare 计算比较盘。
+pub async fn post_compare(
+    req: &HoroscopeComparisonRequest,
+) -> Result<HoroscopeComparison, String> {
+    let url = format!("{API_BASE_URL}/api/process/compare");
+    Request::post(&url)
+        .header("Content-Type", "application/json")
+        .json(req)
+        .map_err(|e| format!("序列化失败：{e}"))?
+        .send()
+        .await
+        .map_err(|e| format!("网络错误：{e}"))?
+        .json::<HoroscopeComparison>()
+        .await
+        .map_err(|e| format!("解析响应失败：{e}"))
+}
+
+/// 调用 POST /api/process/secondary_progression 计算次限推运（取推运时刻）。
+pub async fn post_secondary_progression(
+    req: &SecondaryProgressionRequest,
+) -> Result<SecondaryProgression, String> {
+    let url = format!("{API_BASE_URL}/api/process/secondary_progression");
+    Request::post(&url)
+        .header("Content-Type", "application/json")
+        .json(req)
+        .map_err(|e| format!("序列化失败：{e}"))?
+        .send()
+        .await
+        .map_err(|e| format!("网络错误：{e}"))?
+        .json::<SecondaryProgression>()
         .await
         .map_err(|e| format!("解析响应失败：{e}"))
 }

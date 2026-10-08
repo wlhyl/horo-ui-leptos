@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// 推运种类（对应原版 ProcessName）。
-#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub(crate) enum ProcessName {
     Profection,
     MedievalProfection,

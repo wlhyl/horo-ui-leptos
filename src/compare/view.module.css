@@ -1,0 +1,182 @@
+/*! 比较盘结果视图样式：独立页框架（同返照盘页）+ 摘要 / 标签页 / 详情列表。 */
+
+/* ---------- 独立页框架（同 power / direction / return 页） ---------- */
+
+.page {
+  min-height: 100%;
+  padding: 16px 16px 32px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.back_btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-1);
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.back_btn:hover {
+  color: var(--gold);
+  border-color: var(--gold-2);
+  transform: translateX(-2px);
+}
+
+.back_btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.title {
+  position: relative;
+  margin: 0;
+  padding-left: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-0);
+  display: flex;
+  align-items: center;
+}
+
+.title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--gold), var(--indigo));
+}
+
+/* ---------- 摘要行（同返照盘结果页） ---------- */
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  font-size: 14px;
+  color: var(--text-1);
+  margin-bottom: 14px;
+}
+
+.summary b {
+  color: var(--text-0);
+  font-weight: 600;
+}
+
+/* ---------- 标签行：星盘 / 相位 / 详情 分段控件居左 ---------- */
+
+.tabs_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.tabs button {
+  padding: 6px 18px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-1);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tabs button:hover:not(.active) {
+  color: var(--text-0);
+  background: rgba(20, 30, 50, 0.04);
+}
+
+/* 选中态：由 Rust 侧按条件拼接本类名（leptos 的 class:active 只能写死字面量） */
+.tabs button.active {
+  color: #fff;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--indigo), var(--violet));
+  box-shadow: 0 2px 8px rgba(79, 91, 213, 0.35);
+}
+
+/* 标签页内容区：圆角浅描边容器 */
+.tab_content {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* ---------- 相位读图提示（对应原版 aspect-hint） ---------- */
+
+.aspect_hint {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-1);
+}
+
+/* ---------- 详情：映点 / 反映点两列卡片 ---------- */
+
+.detail_cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.detail_card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.detail_title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-0);
+}
+
+.detail_list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-1);
+}
+
+.detail_list .glyph {
+  font-size: 15px;
+}
+
+.detail_empty {
+  font-size: 13px;
+  color: var(--text-1);
+}

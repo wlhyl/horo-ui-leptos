@@ -89,22 +89,30 @@ pub(crate) const ALL_SIGNIFICATORS: [PlanetName; 14] = [
     PlanetName::PartOfFortune,
 ];
 
-/// 推运类型下拉的全体可选项：方向推运 + 返照盘（对应原版 processOptions 的子集）。
-pub(crate) const PROCESS_OPTIONS: [ProcessName; 6] = [
+/// 推运类型下拉的全体可选项：方向推运 + 返照盘 + 比较盘（对应原版 processOptions 子集）。
+pub(crate) const PROCESS_OPTIONS: [ProcessName; 14] = [
     ProcessName::Direction,
     ProcessName::DailyDirection,
     ProcessName::SolarArc,
     ProcessName::SolarReturn,
     ProcessName::LunarReturn,
     ProcessName::DailyReturn,
+    ProcessName::Transit,
+    ProcessName::SolarcomparNative,
+    ProcessName::NativecomparSolar,
+    ProcessName::LunarcomparNative,
+    ProcessName::NativecomparLunar,
+    ProcessName::DailycomparNative,
+    ProcessName::NativecomparDaily,
+    ProcessName::SecondaryProgressionComparNative,
 ];
 
-/// 推运类型的分组显示：方向推运 / 返照盘两组（与工作台「添加星盘」按钮组的
-/// 两条分隔线分组对应，原版 input-panel 的 推运 / 返照 分组）。
-pub(crate) const PROCESS_GROUPS: [(&str, [ProcessName; 3]); 2] = [
+/// 推运类型的分组显示：方向推运 / 返照盘 / 比较盘三组（与工作台「添加星盘」
+/// 按钮组的分隔线分组对应，原版 input-panel 的 推运 / 返照 分组）。
+pub(crate) const PROCESS_GROUPS: [(&str, &[ProcessName]); 3] = [
     (
         "方向推运",
-        [
+        &[
             ProcessName::Direction,
             ProcessName::DailyDirection,
             ProcessName::SolarArc,
@@ -112,10 +120,23 @@ pub(crate) const PROCESS_GROUPS: [(&str, [ProcessName; 3]); 2] = [
     ),
     (
         "返照盘",
-        [
+        &[
             ProcessName::SolarReturn,
             ProcessName::LunarReturn,
             ProcessName::DailyReturn,
+        ],
+    ),
+    (
+        "比较盘",
+        &[
+            ProcessName::Transit,
+            ProcessName::SolarcomparNative,
+            ProcessName::NativecomparSolar,
+            ProcessName::LunarcomparNative,
+            ProcessName::NativecomparLunar,
+            ProcessName::DailycomparNative,
+            ProcessName::NativecomparDaily,
+            ProcessName::SecondaryProgressionComparNative,
         ],
     ),
 ];
@@ -129,6 +150,14 @@ pub(crate) fn process_title(mode: ProcessName) -> &'static str {
         ProcessName::SolarReturn => "日返",
         ProcessName::LunarReturn => "月返",
         ProcessName::DailyReturn => "每日回归",
+        ProcessName::Transit => "行运",
+        ProcessName::SolarcomparNative => "日返比本命",
+        ProcessName::NativecomparSolar => "本命比日返",
+        ProcessName::LunarcomparNative => "月返比本命",
+        ProcessName::NativecomparLunar => "本命比月返",
+        ProcessName::DailycomparNative => "每日回归比本命",
+        ProcessName::NativecomparDaily => "本命比每日回归",
+        ProcessName::SecondaryProgressionComparNative => "次限比本命",
         _ => "推运",
     }
 }

@@ -7,3 +7,5 @@
 pub(crate) mod view;
 
 pub(crate) use view::{ReturnPage, ReturnView};
+/// 返照时刻请求链（日返→月返→每日回归），比较盘复用。
+pub(crate) use view::fetch_return;

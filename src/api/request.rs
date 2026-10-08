@@ -9,6 +9,7 @@ use crate::{
     enums::{
         arc_to_date_method::ArcToDateMethod, daily_direction_method::DailyDirectionMethod,
         direction_method::DirectionMethod, house::HouseName, planet::PlanetName,
+        secondary_progression_method::SecondaryProgressionMethod,
     },
     models::datetime::DateTimeData,
     models::geo::GeoPosition,
@@ -75,6 +76,34 @@ pub struct ReturnRequest {
     pub process_date: DateTimeData,
     /// 居住地大地经纬度
     pub geo: GeoPosition,
+    pub house: HouseName,
+}
+
+/// 比较盘请求体（对应原版 HoroscopeComparisonRequest）。
+#[derive(Clone, Copy, Serialize)]
+pub struct HoroscopeComparisonRequest {
+    /// 原星盘时间
+    pub original_date: DateTimeData,
+    /// 比较盘时间
+    pub comparison_date: DateTimeData,
+    /// 原星盘的地理位置
+    pub original_geo: GeoPosition,
+    /// 比较星盘的地理位置
+    pub comparison_geo: GeoPosition,
+    pub house: HouseName,
+}
+
+/// 次限推运请求体（对应原版 SecondaryProgressionRequest）。
+#[derive(Clone, Copy, Serialize)]
+pub struct SecondaryProgressionRequest {
+    /// 出生时间
+    pub native_date: DateTimeData,
+    /// 推运时间
+    pub process_date: DateTimeData,
+    /// 推运所在地大地经纬度
+    pub geo: GeoPosition,
+    /// 次限算法
+    pub method: SecondaryProgressionMethod,
     pub house: HouseName,
 }
 
