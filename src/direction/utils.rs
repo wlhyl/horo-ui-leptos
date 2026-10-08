@@ -2,6 +2,7 @@
 use leptos::prelude::*;
 
 use crate::api::response::{Promittor, Significator};
+use crate::components::{SelectGroup, SelectPopup};
 use crate::astro::horo_math::{degree_to_dms, zodiac_long};
 use crate::enums::{
     arc_to_date_method::ArcToDateMethod, daily_direction_method::DailyDirectionMethod,
@@ -15,6 +16,9 @@ stylance::import_crate_style!(
     form,
     "src/shared/form.module.css"
 );
+
+// 分组表 → 弹层选项组（转发 components::grouped_items，供 method_select 组装）
+pub(crate) use crate::components::grouped_items;
 
 /// 主限算法候选项（下拉遍历用）。
 pub(crate) const DIRECTION_METHODS: [DirectionMethod; 3] = [
@@ -33,7 +37,7 @@ pub(crate) const DAILY_DIRECTION_METHODS: [DailyDirectionMethod; 2] = [
     DailyDirectionMethod::SemiArcZodiacal,
 ];
 
-/// 算法类下拉框（枚举以 Display 中文名作选项文案与 value）。
+/// 算法类下拉框（枚举以 Display 中文名作选项文案；选项为静态常量表）。
 pub(crate) fn method_select<M>(
     label: &'static str,
     value: RwSignal<M>,
@@ -47,25 +51,12 @@ where
         <div class=form::field>
             <label>{label}</label>
             <div class=form::control>
-                <select
-                    on:change=move |ev| {
-                        let v = event_target_value(&ev);
-                        if let Some(m) = options.iter().copied().find(|m| m.to_string() == v) {
-                            value.set(m);
-                        }
-                    }
-                >
-                    {options
-                        .iter()
-                        .copied()
-                        .map(|m| {
-                            let selected = move || value.get() == m;
-                            view! {
-                                <option value=m.to_string() selected=selected>{m.to_string()}</option>
-                            }
-                        })
-                        .collect::<Vec<_>>()}
-                </select>
+                <SelectPopup
+                    current=move || Some(value.get())
+                    on_pick=move |m| value.set(m)
+                    groups=move || vec![SelectGroup { label: "", items: options.clone() }]
+                    label=|m| m.to_string()
+                />
             </div>
         </div>
     }

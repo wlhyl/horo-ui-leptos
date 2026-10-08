@@ -9,7 +9,7 @@ use reactive_stores::Store;
 
 use crate::components::{
     AlertDialog, ArchiveSelector, DateTimeInput, FormState, FormStateStoreFields, GeoInput,
-    HouseSelect,
+    HouseSelect, SelectPopup, flat_group,
 };
 use crate::enums::planet::TRADITIONAL_PLANETS;
 use crate::models::data::HoroData;
@@ -163,28 +163,12 @@ pub fn Input(mode: ChartMode) -> impl IntoView {
                     <div class=form::field>
                         <label>"基准行星"</label>
                         <div class=form::control>
-                            <select
-                                on:change=move |ev| {
-                                    let v = event_target_value(&ev);
-                                    // 选项 value 即枚举变体名（PlanetName 序列化名）
-                                    if let Some(p) = TRADITIONAL_PLANETS
-                                        .iter()
-                                        .copied()
-                                        .find(|p| p.to_string() == v)
-                                    {
-                                        derived_planet.set(p);
-                                    }
-                                }
-                            >
-                                {TRADITIONAL_PLANETS
-                                    .iter()
-                                    .copied()
-                                    .map(|p| {
-                                        let selected = move || derived_planet.get() == p;
-                                        view! { <option value=p.to_string() selected=selected>{planet_glyph(p)}</option> }
-                                    })
-                                    .collect::<Vec<_>>()}
-                            </select>
+                            <SelectPopup
+                                current=move || Some(derived_planet.get())
+                                on_pick=move |p| derived_planet.set(p)
+                                groups=move || flat_group(TRADITIONAL_PLANETS)
+                                label=|p| planet_glyph(p).to_string()
+                            />
                         </div>
                     </div>
                 </Show>

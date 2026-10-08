@@ -12,10 +12,11 @@ use reactive_stores::Store;
 
 use crate::components::{
     AlertDialog, ArchiveSelector, DateTimeInput, FormState, FormStateStoreFields, GeoInput,
-    HouseSelect, ProcessTypeSelect,
+    HouseSelect, SelectPopup,
 };
 use crate::direction::utils::{
-    ARC_TO_DATE_METHODS, DAILY_DIRECTION_METHODS, DIRECTION_METHODS, PROCESS_OPTIONS, method_select,
+    ARC_TO_DATE_METHODS, DAILY_DIRECTION_METHODS, DIRECTION_METHODS, PROCESS_GROUPS,
+    PROCESS_OPTIONS, grouped_items, method_select, process_title,
 };
 use crate::enums::process_name::ProcessName;
 use crate::models::{
@@ -232,7 +233,12 @@ pub(crate) fn ProcessInput() -> impl IntoView {
                 <div class=form::field>
                     <label>"推运类型"</label>
                     <div class=form::control>
-                        <ProcessTypeSelect process_name/>
+                        <SelectPopup
+                            current=move || Some(process_name.get())
+                            on_pick=move |p| process_name.set(p)
+                            groups=move || grouped_items(&PROCESS_GROUPS)
+                            label=|p| process_title(p).to_string()
+                        />
                     </div>
                 </div>
                 <DateTimeInput state=process_state/>

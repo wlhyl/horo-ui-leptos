@@ -10,10 +10,11 @@ use reactive_stores::Store;
 
 use crate::components::{
     AlertDialog, ArchiveSelector, DateTimeInput, FormState, FormStateStoreFields, GeoInput,
-    HouseSelect, ProcessTypeSelect,
+    HouseSelect, SelectPopup, flat_group,
 };
 use crate::direction::utils::{
-    ARC_TO_DATE_METHODS, DAILY_DIRECTION_METHODS, DIRECTION_METHODS, PROCESS_OPTIONS, method_select,
+    ARC_TO_DATE_METHODS, DAILY_DIRECTION_METHODS, DIRECTION_METHODS, PROCESS_GROUPS,
+    PROCESS_OPTIONS, grouped_items, method_select, process_title,
 };
 use crate::enums::planet::TRADITIONAL_PLANETS;
 use crate::enums::process_name::ProcessName;
@@ -293,32 +294,12 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                         <div class=form::field>
                             <label>"基准行星"</label>
                             <div class=form::control>
-                                <select
-                                    on:change=move |ev| {
-                                        // 编辑实时写回 HoroStorage（对齐原版
-                                        // onDerivedPlanetNameChange → storage）
-                                        let v = event_target_value(&ev);
-                                        if let Some(p) = TRADITIONAL_PLANETS
-                                            .iter()
-                                            .copied()
-                                            .find(|p| p.to_string() == v)
-                                        {
-                                            storage.set_derived_planet_name(p);
-                                        }
-                                    }
-                                >
-                                    {TRADITIONAL_PLANETS
-                                        .iter()
-                                        .copied()
-                                        .map(|p| {
-                                            let selected =
-                                                move || storage.derived_planet_name() == p;
-                                            view! {
-                                                <option value=p.to_string() selected=selected>{planet_glyph(p)}</option>
-                                            }
-                                        })
-                                        .collect::<Vec<_>>()}
-                                </select>
+                                <SelectPopup
+                                    current=move || Some(storage.derived_planet_name())
+                                    on_pick=move |p| storage.set_derived_planet_name(p)
+                                    groups=move || flat_group(TRADITIONAL_PLANETS)
+                                    label=|p| planet_glyph(p).to_string()
+                                />
                             </div>
                         </div>
                         <p class=style::hint>
@@ -350,7 +331,12 @@ pub fn InputPanel(work_area: NodeRef<leptos::html::Div>) -> impl IntoView {
                             <div class=form::control>
                                 // 自定义分组下拉（方向推运 / 返照盘两组，组间分隔线）；
                                 // 选择写回 process_name 信号，下方 Effect 实时落 localStorage
-                                <ProcessTypeSelect process_name/>
+                                <SelectPopup
+                                    current=move || Some(process_name.get())
+                                    on_pick=move |p| process_name.set(p)
+                                    groups=move || grouped_items(&PROCESS_GROUPS)
+                                    label=|p| process_title(p).to_string()
+                                />
                             </div>
                         </div>
                         <DateTimeInput state=process_state/>

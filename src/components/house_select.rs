@@ -2,8 +2,8 @@
 use leptos::prelude::*;
 use reactive_stores::Store;
 
+use crate::components::{FormState, FormStateStoreFields, SelectPopup, flat_group};
 use crate::enums::house::HouseName;
-use crate::components::{FormState, FormStateStoreFields};
 
 stylance::import_crate_style!(
     #[allow(dead_code)]
@@ -17,22 +17,12 @@ pub fn HouseSelect(state: Store<FormState>) -> impl IntoView {
         <div class=form::field>
             <label>"宫位系统"</label>
             <div class=form::control>
-                <select
-                    on:change=move |ev| {
-                        let v = event_target_value(&ev);
-                        state
-                            .house()
-                            .set(HouseName::from_str(&v).unwrap_or(HouseName::Regiomontanus));
-                    }
-                >
-                    {HouseName::ALL
-                        .iter()
-                        .map(|&h| {
-                            let selected = move || state.house().get() == h;
-                            view! { <option value=h.as_str() selected=selected>{h.as_str()}</option> }
-                        })
-                        .collect::<Vec<_>>()}
-                </select>
+                <SelectPopup
+                    current=move || Some(state.house().get())
+                    on_pick=move |h| state.house().set(h)
+                    groups=move || flat_group(HouseName::ALL)
+                    label=|h| h.as_str().to_string()
+                />
             </div>
         </div>
     }

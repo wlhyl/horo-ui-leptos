@@ -1,4 +1,4 @@
-/*! 推运类型下拉：触发器外观对齐全局 select，弹层为可定制的分组列表。 */
+/*! 通用自定义下拉：触发器外观对齐全局 select，弹层为主题化分组选项列表。 */
 
 .wrap {
   /* 在 form::control（flex 容器）中占满整行，与原生 select 的 width:100% 一致 */
@@ -115,4 +115,13 @@
   width: 15px;
   height: 15px;
   flex: 0 0 auto;
+}
+
+/* 紧凑变体：行内场景（如「添加行星」按钮排）不占满整行 */
+.compact {
+  width: auto;
+}
+
+.compact .trigger {
+  min-width: 88px;
 }

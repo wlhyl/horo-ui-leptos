@@ -11,7 +11,7 @@ mod detail;
 mod form_state;
 mod geo_input;
 mod house_select;
-mod process_type_select;
+mod select_popup;
 
 pub use alert::{AlertAction, AlertDialog};
 pub use archive_selector::ArchiveSelector;
@@ -25,6 +25,6 @@ pub use datetime_input::DateTimeInput;
 pub use detail::Detail;
 pub use geo_input::GeoInput;
 pub use house_select::HouseSelect;
-pub use process_type_select::ProcessTypeSelect;
+pub use select_popup::{SelectGroup, SelectPopup, flat_group, grouped_items};
 // FormState 仅 crate 内可见（pub(crate) 类型，无法 pub 再导出）
 pub(crate) use form_state::{FormState, FormStateStoreFields};

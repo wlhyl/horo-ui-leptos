@@ -9,6 +9,7 @@ use crate::astro::temperament::{
     get_contributor_qualities, ContributorName, GATHERABLE_PLANETS, Quality,
     TemperamentContributor,
 };
+use crate::components::{SelectGroup, SelectPopup};
 use crate::enums::planet::PlanetName;
 use crate::enums::zodiac::Zodiac;
 use crate::render::glyphs::{planet_glyph, zodiac_glyph};
@@ -237,41 +238,16 @@ pub fn Temperament(horoscope: Horoscope) -> impl IntoView {
                 </div>
 
                 <div class=style::add_row>
-                    <select
-                        class=style::add_select
-                        prop:value=move || {
-                            selected_planet
-                                .get()
-                                .and_then(|p| GATHERABLE_PLANETS.iter().position(|g| *g == p))
-                                .map(|i| i.to_string())
-                                .unwrap_or_default()
+                    <SelectPopup
+                        compact=true
+                        current=move || selected_planet.get()
+                        on_pick=move |p| selected_planet.set(Some(p))
+                        groups=move || {
+                            vec![SelectGroup { label: "", items: available_planets.get() }]
                         }
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            selected_planet
-                                .set(value.parse::<usize>().ok().and_then(|i| GATHERABLE_PLANETS.get(i).copied()));
-                        }
-                    >
-                        <option value="">"添加行星"</option>
-                        {move || {
-                            available_planets
-                                .get()
-                                .iter()
-                                .map(|p| {
-                                    let value = GATHERABLE_PLANETS
-                                        .iter()
-                                        .position(|g| *g == *p)
-                                        .unwrap_or_default()
-                                        .to_string();
-                                    view! {
-                                        <option value=value>
-                                            <span class=style::glyph>{planet_glyph(*p)}</span>
-                                        </option>
-                                    }
-                                })
-                                .collect::<Vec<_>>()
-                        }}
-                    </select>
+                        label=|p| planet_glyph(p).to_string()
+                        placeholder="添加行星"
+                    />
                     <button
                         class=style::add_btn
                         disabled=move || selected_planet.get().is_none()
@@ -280,41 +256,16 @@ pub fn Temperament(horoscope: Horoscope) -> impl IntoView {
                         "添加"
                     </button>
 
-                    <select
-                        class=style::add_select
-                        prop:value=move || {
-                            selected_sign
-                                .get()
-                                .map(|s| (s as u8).to_string())
-                                .unwrap_or_default()
+                    <SelectPopup
+                        compact=true
+                        current=move || selected_sign.get()
+                        on_pick=move |s| selected_sign.set(Some(s))
+                        groups=move || {
+                            vec![SelectGroup { label: "", items: available_signs.get() }]
                         }
-                        on:change=move |ev| {
-                            let value = event_target_value(&ev);
-                            selected_sign.set(
-                                value
-                                    .parse::<u8>()
-                                    .ok()
-                                    .filter(|i| *i < 12)
-                                    .map(Zodiac::from_index),
-                            );
-                        }
-                    >
-                        <option value="">"添加星座"</option>
-                        {move || {
-                            available_signs
-                                .get()
-                                .iter()
-                                .map(|s| {
-                                    let value = (*s as u8).to_string();
-                                    view! {
-                                        <option value=value>
-                                            <span class=style::glyph>{zodiac_glyph(*s)}</span>
-                                        </option>
-                                    }
-                                })
-                                .collect::<Vec<_>>()
-                        }}
-                    </select>
+                        label=|s| zodiac_glyph(s).to_string()
+                        placeholder="添加星座"
+                    />
                     <button
                         class=style::add_btn
                         disabled=move || selected_sign.get().is_none()
